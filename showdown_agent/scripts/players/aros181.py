@@ -66,18 +66,18 @@ Calm Nature
 """
 
 class CustomAgent(Player):
-    # -------- settings --------
-    STATIC_LEAD_NAME: Optional[str] = None  # use smart preview-based lead
+    # ------------ settings ------------
+    STATIC_LEAD_NAME: Optional[str] = "Clodsire"
 
-    # Threat → preferred checks (first healthy one chosen)
+    # Reordered: NEVER mirror their Eternatus if it’s boosting
     THREAT_SWITCH: Dict[str, List[str]] = {
         "Deoxys-Speed":   ["Giratina"],
         "Zacian-Crowned": ["Dondozo", "Ho-Oh", "Giratina"],
         "Koraidon":       ["Arceus", "Ho-Oh", "Dondozo"],
-        "Kingambit":      ["Ho-Oh", "Giratina", "Dondozo"],  # changed: Ho-Oh first
+        "Kingambit":      ["Giratina", "Dondozo", "Ho-Oh"],
         "Rayquaza":       ["Dondozo", "Ho-Oh", "Giratina"],
         "Kyogre":         ["Eternatus", "Arceus", "Ho-Oh"],
-        "Eternatus":      ["Clodsire", "Eternatus", "Arceus", "Giratina"],  # Haze/DT first
+        "Eternatus":      ["Clodsire", "Giratina", "Arceus", "Eternatus"],  # <-- changed
         "Arceus-Fairy":   ["Clodsire", "Ho-Oh", "Giratina"],
         "Groudon":        ["Ho-Oh", "Giratina", "Arceus"],
     }
@@ -86,14 +86,13 @@ class CustomAgent(Player):
         "Zacian-Crowned", "Koraidon", "Kingambit", "Kyogre", "Eternatus", "Rayquaza"
     )
 
-    # switch/emergency tuning
     SWITCH_COOLDOWN_TURNS = 1
-    EMERGENCY_SPA = 1      # trigger at +1 (Meteor Beam turn)
+    EMERGENCY_SPA = 1
     EMERGENCY_SPE = 1
 
-    # team preview priority (fallback)
-    LEAD_PRIORITY = ["Ho-Oh", "Giratina", "Clodsire", "Dondozo", "Arceus", "Eternatus"]
+    LEAD_PRIORITY = ["Clodsire", "Giratina", "Dondozo", "Arceus", "Eternatus", "Ho-Oh"]
 
+    # ------------ lifecycle hooks ------------
     def teampreview(self, battle):
         mons = list(battle.team.values())
         if not mons:
@@ -102,105 +101,94 @@ class CustomAgent(Player):
         if self.STATIC_LEAD_NAME:
             for i, mon in enumerate(mons):
                 if mon and self.STATIC_LEAD_NAME.lower() in (mon.species or "").lower():
-                    desired.append(i)
-                    break
+                    desired.append(i); break
         if not desired:
-            # Ho-Oh lead if they show Kingambit
-            if self._opp_team_has(battle, "Kingambit"):
-                for i, mon in enumerate(mons):
-                    if mon and "ho-oh" in (mon.species or "").lower():
-                        desired.append(i)
-                        break
-            # otherwise by LEAD_PRIORITY
             for want in self.LEAD_PRIORITY:
                 for i, mon in enumerate(mons):
-                    if i in desired or not mon:
-                        continue
+                    if i in desired or not mon: continue
                     if want.lower() in (mon.species or "").lower():
-                        desired.append(i)
-                        break
+                        desired.append(i); break
         for i in range(len(mons)):
-            if i not in desired:
-                desired.append(i)
+            if i not in desired: desired.append(i)
         return "/team " + "".join(str(i + 1) for i in desired)
 
     def __init__(self, *args, **kwargs):
         super().__init__(team=team, *args, **kwargs)
         self._last_switch_turn: Dict[str, int] = {}
-        self._last_switch_target: Dict[str, str] = {}
 
-    # -------- helpers --------
+    # ------------ helpers ------------
     def _move(self, battle: AbstractBattle, move_id: str):
         for m in (battle.available_moves or []):
-            if m.id == move_id:
-                return m
+            if m.id == move_id: return m
         return None
 
     def _hp(self, mon) -> float:
-        return (getattr(mon, "current_hp_fraction", 0.0) or 0.0)
+        return float(getattr(mon, "current_hp_fraction", 0.0) or 0.0)
 
     def _turn(self, battle: AbstractBattle) -> int:
-        try:
-            return int(getattr(battle, "turn", 0))
-        except Exception:
-            return 0
+        return int(getattr(battle, "turn", 0) or 0)
 
-    def _opp_species_raw(self, battle: AbstractBattle) -> str:
-        o = battle.opponent_active_pokemon
-        return (o.species or "") if o else ""
+    def _opp(self, battle): return battle.opponent_active_pokemon
+    def _me(self, battle):  return battle.active_pokemon
 
-    def _opp_tag(self, battle: AbstractBattle) -> str:
-        o = battle.opponent_active_pokemon
-        if not o:
-            return ""
+    def _opp_name(self, battle) -> str:
+        o = self._opp(battle); return (o.species or "") if o else ""
+
+    def _opp_tag(self, battle) -> str:
+        o = self._opp(battle)
+        if not o: return ""
         name = (o.species or "")
-        if "Arceus" in name and o.types and ("Fairy" in o.types):
-            return "Arceus-Fairy"
+        if "Arceus" in name and o.types and ("Fairy" in o.types): return "Arceus-Fairy"
         return name
 
     def _opp_team_has(self, battle: AbstractBattle, name: str) -> bool:
         for p in (battle.opponent_team or {}).values():
-            if p and name.lower() in (p.species or "").lower():
-                return True
+            if p and name.lower() in (p.species or "").lower(): return True
         return False
 
-    def _preferred_lead(self, battle: AbstractBattle):
-        # explicit early rules
-        if self._opp_team_has(battle, "Kingambit"):     return self._bench_has(battle, "Ho-Oh")
-        if self._opp_team_has(battle, "Deoxys-Speed"):  return self._bench_has(battle, "Giratina")
-        if self._opp_team_has(battle, "Kyogre"):        return self._bench_has(battle, "Eternatus")
-        if self._opp_team_has(battle, "Eternatus"):     return self._bench_has(battle, "Clodsire") or self._bench_has(battle, "Eternatus")
-        if self._opp_team_has(battle, "Zacian-Crowned"):return self._bench_has(battle, "Dondozo")
-        if self._opp_team_has(battle, "Koraidon"):      return self._bench_has(battle, "Arceus")
-        # fallback ordering
-        for want in self.LEAD_PRIORITY:
-            b = self._bench_has(battle, want)
-            if b: return b
-        return None
-
     def _is_pressure_turn(self, battle: AbstractBattle) -> bool:
-        o = battle.opponent_active_pokemon
+        o = self._opp(battle)
         if o and getattr(o, "boosts", None) and any(v > 0 for v in o.boosts.values()):
             return True
-        name = self._opp_species_raw(battle)
-        return any(tag in name for tag in self.HIGH_PRESSURE)
+        return any(tag in self._opp_name(battle) for tag in self.HIGH_PRESSURE)
 
     def _bench_has(self, battle: AbstractBattle, name: str):
         for p in (battle.available_switches or []):
-            if name.lower() in (p.species or "").lower():
-                return p
+            if name.lower() in (p.species or "").lower(): return p
         return None
+
+    def _preferred_lead(self, battle: AbstractBattle):
+        if self.STATIC_LEAD_NAME:
+            lead = self._bench_has(battle, self.STATIC_LEAD_NAME)
+            if lead: return lead
+        if self._opp_team_has(battle, "Deoxys-Speed"):   return self._bench_has(battle, "Giratina")
+        if self._opp_team_has(battle, "Kyogre"):         return self._bench_has(battle, "Eternatus")
+        if self._opp_team_has(battle, "Eternatus"):      return self._bench_has(battle, "Clodsire") or self._bench_has(battle, "Eternatus")
+        if self._opp_team_has(battle, "Zacian-Crowned"): return self._bench_has(battle, "Dondozo")
+        if self._opp_team_has(battle, "Koraidon"):       return self._bench_has(battle, "Arceus")
+        return self._bench_has(battle, "Clodsire") or self._bench_has(battle, "Giratina")
 
     def _preferred_switch(self, battle: AbstractBattle):
         tag = self._opp_tag(battle)
-        if tag in self.THREAT_SWITCH:
-            for cand in self.THREAT_SWITCH[tag]:
+        # Special guard: never switch our Eternatus into theirs if they have SpA boosts
+        if tag == "Eternatus":
+            o = self._opp(battle)
+            boosted = bool(o and getattr(o, "boosts", None) and o.boosts.get("spa", 0) > 0)
+            order = ["Clodsire", "Giratina", "Arceus"] + ([] if boosted else ["Eternatus"])
+            for cand in order:
                 sw = self._bench_has(battle, cand)
                 if sw and self._hp(sw) >= 0.4:
                     return sw
-        name = self._opp_species_raw(battle)
+        # Default table
+        table = self.THREAT_SWITCH.get(tag)
+        if table:
+            for cand in table:
+                sw = self._bench_has(battle, cand)
+                if sw and self._hp(sw) >= 0.4:
+                    return sw
+        # Fallback by fuzzy match
         for key, prefs in self.THREAT_SWITCH.items():
-            if key.lower() in name.lower():
+            if key.lower() in self._opp_name(battle).lower():
                 for cand in prefs:
                     sw = self._bench_has(battle, cand)
                     if sw and self._hp(sw) >= 0.4:
@@ -208,22 +196,17 @@ class CustomAgent(Player):
         return None
 
     def _best_attack(self, battle: AbstractBattle):
-        me = battle.active_pokemon
-        opp = battle.opponent_active_pokemon
+        me = self._me(battle); opp = self._opp(battle)
         moves = battle.available_moves or []
-        if not me or not opp or not moves:
-            return None
+        if not me or not opp or not moves: return None
         atk_bias = 1.1 if me.stats.get("atk",0) >= me.stats.get("spa",0) else 1.0
         spa_bias = 1.1 if me.stats.get("spa",0) >  me.stats.get("atk",0) else 1.0
         def score(m):
             bp = m.base_power or 0
-            if bp == 0:
-                return 0
+            if bp == 0: return 0
             stab = 1.2 if (m.type and me.types and m.type in me.types) else 1.0
-            try:
-                eff = opp.damage_multiplier(m)
-            except Exception:
-                eff = 1.0
+            try: eff = opp.damage_multiplier(m)
+            except Exception: eff = 1.0
             acc  = (m.accuracy or 100)/100.0
             hits = getattr(m, "expected_hits", 1) or 1
             catb = atk_bias if getattr(m, "category", None) and getattr(m.category, "name", "") == "PHYSICAL" else spa_bias
@@ -231,240 +214,150 @@ class CustomAgent(Player):
         return max(moves, key=score)
 
     def _matchup_score(self, me, opp) -> float:
-        if not me or not opp:
-            return 0.0
+        if not me or not opp: return 0.0
         try:
-            our_types = [t for t in (me.types or []) if t is not None]
+            our_types   = [t for t in (me.types or []) if t is not None]
             their_types = [t for t in (opp.types or []) if t is not None]
-            our_eff = max((opp.damage_multiplier(t) for t in our_types), default=1.0)
+            our_eff   = max((opp.damage_multiplier(t) for t in our_types), default=1.0)
             their_eff = max((me.damage_multiplier(t) for t in their_types), default=1.0)
         except Exception:
             our_eff, their_eff = 1.0, 1.0
-        spd = 0.1 if me.base_stats.get("spe",0) > opp.base_stats.get("spe",0) else (-0.1 if me.base_stats.get("spe",0) < opp.base_stats.get("spe",0) else 0.0)
+        spd =  0.1 if me.base_stats.get("spe",0) >  opp.base_stats.get("spe",0) else \
+              (-0.1 if me.base_stats.get("spe",0) <  opp.base_stats.get("spe",0) else 0.0)
         hp_term = (self._hp(me) - self._hp(opp)) * 0.3
         return (our_eff - their_eff) + spd + hp_term
 
-    # ---- hazard/switch helpers ----
+    def _has_hazards_self(self, battle: AbstractBattle) -> bool:
+        sc = battle.side_conditions or {}
+        return any(k in sc for k in (SideCondition.STEALTH_ROCK, SideCondition.SPIKES,
+                                     SideCondition.TOXIC_SPIKES, SideCondition.STICKY_WEB))
+
+    def _has_hazards_opp(self, battle: AbstractBattle) -> bool:
+        sc = battle.opponent_side_conditions or {}
+        return any(k in sc for k in (SideCondition.STEALTH_ROCK, SideCondition.SPIKES,
+                                     SideCondition.TOXIC_SPIKES, SideCondition.STICKY_WEB))
+
     def _hazard_chip_estimate(self, battle: AbstractBattle, target=None) -> float:
-        # ignore if Heavy-Duty Boots
+        # basic, boots-aware
         try:
-            item = (getattr(target, "item", "") or "").lower()
-            if item == "heavydutyboots":
+            if ((getattr(target, "item", "") or "").lower() == "heavydutyboots"):
                 return 0.0
         except Exception:
             pass
         sc = battle.side_conditions or {}
         chip = 0.0
-        if SideCondition.STEALTH_ROCK in sc:
-            chip += 0.125
+        if SideCondition.STEALTH_ROCK in sc: chip += 0.125
         spikes_layers = int(sc.get(SideCondition.SPIKES, 0) or 0)
         chip += min(0.25, 0.125 * spikes_layers)
         return chip
 
+    def _note_switch(self, battle: AbstractBattle):
+        self._last_switch_turn[battle.battle_tag] = self._turn(battle)
+
     def _can_switch_now(self, battle: AbstractBattle, emergency: bool=False) -> bool:
-        key = battle.battle_tag
-        last = self._last_switch_turn.get(key, -999)
-        if emergency:
-            return True
+        if emergency: return True
+        last = self._last_switch_turn.get(battle.battle_tag, -999)
         return (self._turn(battle) - last) > self.SWITCH_COOLDOWN_TURNS
 
-    def _note_switch(self, battle: AbstractBattle, target_species: str):
-        key = battle.battle_tag
-        self._last_switch_turn[key] = self._turn(battle)
-        self._last_switch_target[key] = target_species or ""
-
-    def _is_emergency_boost(self, opp) -> bool:
-        if not opp or not getattr(opp, "boosts", None):
-            return False
-        return (opp.boosts.get("spa", 0) >= self.EMERGENCY_SPA) or (opp.boosts.get("spe", 0) >= self.EMERGENCY_SPE)
-
-    # ---------- replacement picker (after KOs/phaze) ----------
     def _pick_replacement(self, battle: AbstractBattle):
+        # On replacements, always try named counter first
         pref = self._preferred_switch(battle)
-        if pref:
-            return pref
-        cands = []
-        for p in (battle.available_switches or []):
-            bad_sleep = (getattr(p, "status", None) == "SLP")
-            has_talk = False
-            try:
-                has_talk = any(m.id == "sleeptalk" for m in (p.moves or {}).values())
-            except Exception:
-                pass
-            if bad_sleep and not has_talk:
-                continue
-            cands.append(p)
-        if not cands:
-            cands = battle.available_switches or []
-        opp = battle.opponent_active_pokemon
-        def ms(p):
-            base = self._matchup_score(p, opp)
-            return base + self._hp(p) * 0.25
-        return max(cands, key=ms) if cands else None
+        if pref: return pref
+        # Generic fallback by matchup + HP
+        opp = self._opp(battle)
+        cands = battle.available_switches or []
+        if not cands: return None
+        def ms(p): return self._matchup_score(p, opp) + self._hp(p) * 0.25
+        return max(cands, key=ms)
 
-    def _has_hazards_self(self, battle: AbstractBattle) -> bool:
-        sc = battle.side_conditions or {}
-        return any(k in sc for k in (
-            SideCondition.STEALTH_ROCK, SideCondition.SPIKES,
-            SideCondition.TOXIC_SPIKES, SideCondition.STICKY_WEB
-        ))
-
-    def _has_hazards_opp(self, battle: AbstractBattle) -> bool:
-        sc = battle.opponent_side_conditions or {}
-        return any(k in sc for k in (
-            SideCondition.STEALTH_ROCK, SideCondition.SPIKES,
-            SideCondition.TOXIC_SPIKES, SideCondition.STICKY_WEB
-        ))
-
-    # -------- policy --------
+    # ------------ policy ------------
     def choose_move(self, battle: AbstractBattle):
-        me  = battle.active_pokemon
-        opp = battle.opponent_active_pokemon
+        me, opp = self._me(battle), self._opp(battle)
 
-        # Forced switch: covers team preview (no foe yet) AND post-KO replacements.
+        # Forced switch: turn-0 lead AND post-KO replacements
         fs = getattr(battle, "force_switch", False)
-        is_forced = bool(fs if isinstance(fs, bool) else any(fs))
-        if is_forced:
-            switches = battle.available_switches or []
-            if switches:
-                if not opp or not (opp.species or ""):
-                    lead = self._preferred_lead(battle)
-                    if lead:
-                        self._note_switch(battle, lead.species or "")
-                        return self.create_order(lead)
-                pick = self._pick_replacement(battle)
-                if pick:
-                    self._note_switch(battle, pick.species or "")
-                    return self.create_order(pick)
-                pick = max(switches, key=lambda p: self._hp(p))
-                self._note_switch(battle, pick.species or "")
-                return self.create_order(pick)
+        if bool(fs if isinstance(fs, bool) else any(fs)):
+            # If preview sometimes isn’t honored, enforce our desired lead here too
+            if (not opp or not (opp.species or "")):
+                lead = self._preferred_lead(battle)
+                if lead: self._note_switch(battle); return self.create_order(lead)
+            pick = self._pick_replacement(battle)
+            if pick: self._note_switch(battle); return self.create_order(pick)
             return self.choose_random_move(battle)
 
         if not me or not opp:
             return self.choose_random_move(battle)
 
-        # --- Deoxys-S dedicated handling ---
-        if "Deoxys-Speed" in self._opp_species_raw(battle):
-            # get to Giratina first
-            if "Giratina" not in (me.species or ""):
-                pref = self._bench_has(battle, "Giratina")
-                if pref:
-                    return self.create_order(pref)
-            # on Giratina: Defog hazards first
-            if "Giratina" in (me.species or "") and self._has_hazards_self(battle):
-                d = self._move(battle, "defog")
-                if d:
-                    return self.create_order(d)
-            # remove it with DT (avoids Poltergeist fail edge-cases)
-            if "Giratina" in (me.species or ""):
-                dt = self._move(battle, "dragontail")
-                if dt:
-                    return self.create_order(dt)
-
-        # 1) Eternatus safety vs Ho-Oh (avoid WW into Meteor Beam lines)
-        if "Eternatus" in self._opp_species_raw(battle) and "Ho-Oh" in (me.species or ""):
+        # A) Do NOT keep Ho-Oh in vs Eternatus (Power Herb Meteor Beam risk)
+        if "Eternatus" in self._opp_name(battle) and "Ho-Oh" in (me.species or ""):
             pref = self._preferred_switch(battle)
             if pref and self._can_switch_now(battle, emergency=True):
-                self._note_switch(battle, pref.species or "")
+                self._note_switch(battle)
                 return self.create_order(pref)
 
-        # 2) Boost handling: Haze/DT now; prefer non-Ho-Oh phazers
+        # B) Emergency vs boosts (Eternatus CM/Meteor Beam; CM Arceus, etc.)
         opp_boosted = any(v > 0 for v in (getattr(opp, "boosts", {}) or {}).values())
         if opp_boosted:
+            # Highest priority: Clodsire Haze
             if "Clodsire" in (me.species or ""):
                 hz = self._move(battle, "haze")
-                if hz:
-                    return self.create_order(hz)
+                if hz: return self.create_order(hz)
+            # Then phaze (Dragon Tail preferred)
             dt = self._move(battle, "dragontail")
-            if dt:
-                return self.create_order(dt)
+            if dt: return self.create_order(dt)
             ww = self._move(battle, "whirlwind")
-            if ww and "Eternatus" not in self._opp_species_raw(battle):
+            if ww and "Eternatus" not in self._opp_name(battle):
                 return self.create_order(ww)
+            # Last resort: hard switch to the proper check even if we just switched
             pref = self._preferred_switch(battle)
             if pref and self._can_switch_now(battle, emergency=True):
-                self._note_switch(battle, pref.species or "")
+                self._note_switch(battle)
                 return self.create_order(pref)
 
-        # 3) Healing (avoid under pressure)
-        recover = self._move(battle, "recover")
-        rest    = self._move(battle, "rest")
-        talk    = self._move(battle, "sleeptalk")
-        if getattr(me, "status", None) == "SLP" and talk:
-            return self.create_order(talk)
-        if recover and self._hp(me) <= 0.45 and not self._is_pressure_turn(battle):
-            return self.create_order(recover)
-        if rest and self._hp(me) <= 0.35:
-            return self.create_order(rest)
+        # C) HAZARD CONTROL — Defog ASAP when safe (fixes the replay spiral)
+        if "Giratina" in (me.species or "") and self._has_hazards_self(battle):
+            # Safe if foe is Deoxys-S or anything that’s unlikely to 2HKO us now
+            safe = ("Deoxys" in self._opp_name(battle)) or (self._hp(me) >= 0.5 and not self._is_pressure_turn(battle))
+            if safe:
+                df = self._move(battle, "defog")
+                if df: return self.create_order(df)
 
-        # 4) Threat-driven pivot
+        # D) Healing (avoid when a named breaker is in)
+        if not self._is_pressure_turn(battle):
+            rec = self._move(battle, "recover")
+            if rec and self._hp(me) <= 0.45: return self.create_order(rec)
+        if self._move(battle, "rest") and self._hp(me) <= 0.35:
+            return self.create_order(self._move(battle, "rest"))
+        if getattr(me, "status", None) == "SLP" and self._move(battle, "sleeptalk"):
+            return self.create_order(self._move(battle, "sleeptalk"))
+
+        # E) Threat-driven pivot (but avoid chip-wasting ping-pong)
         if self._is_pressure_turn(battle):
             pref = self._preferred_switch(battle)
             if pref and (pref.species not in (me.species or "")) and self._can_switch_now(battle, emergency=False):
-                self._note_switch(battle, pref.species or "")
+                # If switching into Clodsire would take big hazard chip and it isn’t emergency,
+                # prefer to make progress instead of bouncing.
+                if "Clodsire" in (pref.species or "") and self._hazard_chip_estimate(battle, pref) >= 0.125:
+                    # Try phaze / attack instead
+                    dt = self._move(battle, "dragontail")
+                    if dt: return self.create_order(dt)
+                self._note_switch(battle)
                 return self.create_order(pref)
 
-        # 4.25) General hazard-aware anti-churn gate
-        chip_now = self._hazard_chip_estimate(battle)
-        cur = self._matchup_score(me, opp)
-        if chip_now >= 0.125 and cur > -0.4:
-            atk = self._best_attack(battle)
-            if atk:
-                return self.create_order(atk)
-
-        # 4.5) Anti-bounce specific to Clodsire (use real chip & Boots)
-        if battle.available_switches:
-            pref = self._preferred_switch(battle)
-            if pref and ("Clodsire" in (pref.species or "")):
-                chip = self._hazard_chip_estimate(battle, pref)
-                if chip >= 0.125 and not self._is_emergency_boost(opp):
-                    if "Clodsire" in (me.species or ""):
-                        rec = self._move(battle, "recover")
-                        if rec and self._hp(me) <= 0.6:
-                            return self.create_order(rec)
-                        eq = self._move(battle, "earthquake")
-                        if eq:
-                            return self.create_order(eq)
-                    if not self._can_switch_now(battle, emergency=False):
-                        dt = self._move(battle, "dragontail")
-                        if dt:
-                            return self.create_order(dt)
-                        ww = self._move(battle, "whirlwind")
-                        if ww:
-                            return self.create_order(ww)
-
-        # 5) Generic matchup pivot with emergency losing override
-        emergency_losing = (cur <= -1.0)
-        best_sw, best_sw_score = None, -999
-        for p in (battle.available_switches or []):
-            s = self._matchup_score(p, opp) + self._hp(p) * 0.25
-            if s > best_sw_score:
-                best_sw, best_sw_score = p, s
-        if best_sw and (emergency_losing or best_sw_score >= cur + 0.5) and self._can_switch_now(battle, emergency=emergency_losing):
-            self._note_switch(battle, best_sw.species or "")
-            return self.create_order(best_sw)
-
-        # 6) Safe utility
-        if "Giratina" in (me.species or "") and self._has_hazards_self(battle) and not self._is_pressure_turn(battle):
-            d = self._move(battle, "defog")
-            if d:
-                return self.create_order(d)
-        if "Giratina" in (me.species or ""):
+        # F) Utility: burn physicals when not Fire, once hazards are handled
+        if "Giratina" in (me.species or "") and (not self._has_hazards_self(battle)):
             w = self._move(battle, "willowisp")
             if w and opp and opp.status is None and (not opp.types or "Fire" not in opp.types):
                 return self.create_order(w)
 
-        # 7) Hazards when safe (Clodsire)
+        # G) Hazards when safe (Clodsire)
         if "Clodsire" in (me.species or "") and not self._is_pressure_turn(battle):
             s = self._move(battle, "spikes")
-            if s and not self._has_hazards_opp(battle):
-                return self.create_order(s)
+            if s and not self._has_hazards_opp(battle): return self.create_order(s)
             eq = self._move(battle, "earthquake")
-            if eq:
-                return self.create_order(eq)
+            if eq: return self.create_order(eq)
 
-        # 8) Controlled scaling (late / safe)
+        # H) Controlled scaling (late/safe only)
         if not self._is_pressure_turn(battle) and self._hp(me) >= 0.6:
             if "Arceus" in (me.species or ""):
                 cm = self._move(battle, "calmmind")
@@ -472,18 +365,16 @@ class CustomAgent(Player):
                     return self.create_order(cm)
             if "Eternatus" in (me.species or ""):
                 cp = self._move(battle, "cosmicpower")
-                if cp:
-                    return self.create_order(cp)
+                if cp: return self.create_order(cp)
 
-        # 9) Attack default
+        # I) Default: click our best attack
         atk = self._best_attack(battle)
-        if atk:
-            return self.create_order(atk)
+        if atk: return self.create_order(atk)
 
-        # 10) Last-resort pivot
-        if battle.available_switches and self._hp(me) < 0.3 and self._can_switch_now(battle, emergency=False):
-            pick = max(battle.available_switches, key=lambda p: self._hp(p))
-            self._note_switch(battle, pick.species or "")
-            return self.create_order(pick)
+        # J) Last resort: bail out if we’re losing the matchup hard
+        cur = self._matchup_score(me, opp)
+        if battle.available_switches and (self._hp(me) < 0.3 or cur <= -1.0) and self._can_switch_now(battle, emergency=(cur<=-1.0)):
+            pick = self._pick_replacement(battle)
+            if pick: self._note_switch(battle); return self.create_order(pick)
 
         return self.choose_random_move(battle)
