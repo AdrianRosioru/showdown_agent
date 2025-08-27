@@ -67,15 +67,7 @@ Calm Nature
 
 
 class CustomAgent(Player):
-    """V6 – fixes from replay analysis
-
-    Key behaviour changes:
-    - Always pivot to Giratina on Deoxys-S; prioritize Defog after one layer lands.
-    - Never click Poltergeist into Kingambit; burn or phaze instead.
-    - Ho-Oh instantly pivots out of Eternatus; prefer phazing vs Eternatus from any mon.
-    - Clodsire actually lays Spikes early vs non-pressuring foes (e.g., Arceus-Fairy).
-    - Arceus-Fairy does not stay in on Zacian when chipped; prefers Dondozo.
-    """
+    """V6 – fixes from replay analysis"""
 
     # ------------ settings ------------
     STATIC_LEAD_NAME: Optional[str] = "Clodsire"
@@ -92,8 +84,9 @@ class CustomAgent(Player):
         "Groudon":        ["Ho-Oh", "Giratina", "Arceus"],
     }
 
+    # Tamed: only true auto-pressures; special-case handled in _is_pressure_turn
     HIGH_PRESSURE: Tuple[str, ...] = (
-        "Zacian-Crowned", "Koraidon", "Kingambit", "Kyogre", "Eternatus", "Rayquaza"
+        "Zacian-Crowned", "Koraidon", "Kingambit"  # removed "Eternatus", "Kyogre", "Rayquaza"
     )
 
     SWITCH_COOLDOWN_TURNS = 1
@@ -199,9 +192,17 @@ class CustomAgent(Player):
 
     def _is_pressure_turn(self, battle: AbstractBattle) -> bool:
         o = self._opp(battle)
+        # Any positive boost = pressure
         if o and getattr(o, "boosts", None) and any(v > 0 for v in o.boosts.values()):
             return True
-        return any(tag in self._opp_name(battle) for tag in self.HIGH_PRESSURE)
+        # Only real auto-pressures
+        if any(tag in self._opp_name(battle) for tag in self.HIGH_PRESSURE):
+            return True
+        # Special-case: Ho-Oh into Eternatus is always pressure
+        me = self._me(battle)
+        if o and "Eternatus" in (o.species or "") and me and "Ho-Oh" in (me.species or ""):
+            return True
+        return False
 
     def _bench_has(self, battle: AbstractBattle, name: str):
         for p in (battle.available_switches or []):
@@ -228,21 +229,34 @@ class CustomAgent(Player):
 
     def _preferred_switch(self, battle: AbstractBattle):
         tag = self._opp_tag(battle)
-        # Special guard: don't bring our Eternatus into theirs if they're already +SpA
+        o = self._opp(battle)
+        boosted = bool(o and getattr(o, "boosts", None) and any(v > 0 for v in o.boosts.values()))
+
+        # Special guard for Eternatus (avoid our Eternatus into theirs at +SpA)
         if tag == "Eternatus":
-            o = self._opp(battle)
-            boosted = bool(o and getattr(o, "boosts", None) and o.boosts.get("spa", 0) > 0)
-            order = ["Clodsire", "Giratina", "Arceus"] + ([] if boosted else ["Eternatus"])
+            boosted_spa = bool(o and getattr(o, "boosts", None) and o.boosts.get("spa", 0) > 0)
+            order = ["Clodsire", "Giratina", "Arceus"] + ([] if boosted_spa else ["Eternatus"])
             for cand in order:
                 sw = self._bench_has(battle, cand)
-                if sw and self._hp(sw) >= 0.4:
+                if sw and self._hp(sw) >= (0.3 if boosted_spa else 0.4):
                     return sw
+
+        # If foe is boosted, bias to phazers first
+        if boosted:
+            for cand in ("Giratina", "Eternatus", "Dondozo"):
+                sw = self._bench_has(battle, cand)
+                if sw and self._hp(sw) >= 0.35:
+                    return sw
+
+        # Default table
         table = self.THREAT_SWITCH.get(tag)
         if table:
             for cand in table:
                 sw = self._bench_has(battle, cand)
                 if sw and self._hp(sw) >= 0.4:
                     return sw
+
+        # Fuzzy fallback
         for key, prefs in self.THREAT_SWITCH.items():
             if key.lower() in self._opp_name(battle).lower():
                 for cand in prefs:
@@ -251,47 +265,37 @@ class CustomAgent(Player):
                         return sw
         return None
 
-    def _best_attack(self, battle: AbstractBattle):
-        me = self._me(battle)
-        opp = self._opp(battle)
-        moves = battle.available_moves or []
-        if not me or not opp or not moves:
-            return None
-        # never Poltergeist into Kingambit
-        if "Giratina" in (me.species or "") and "Kingambit" in (opp.species or ""):
-            moves = [m for m in moves if m.id != "poltergeist"] or moves
-        atk_bias = 1.1 if me.stats.get("atk", 0) >= me.stats.get("spa", 0) else 1.0
-        spa_bias = 1.1 if me.stats.get("spa", 0) > me.stats.get("atk", 0) else 1.0
-
-        def score(m):
-            bp = m.base_power or 0
-            if bp == 0:
-                return 0
-            stab = 1.2 if (m.type and me.types and m.type in me.types) else 1.0
-            try:
-                eff = opp.damage_multiplier(m)
-            except Exception:
-                eff = 1.0
-            acc = (m.accuracy or 100) / 100.0
-            hits = getattr(m, "expected_hits", 1) or 1
-            catb = atk_bias if getattr(m, "category", None) and getattr(m.category, "name", "") == "PHYSICAL" else spa_bias
-            return bp * stab * eff * acc * hits * catb
-
-        return max(moves, key=score)
-
-    def _matchup_score(self, me, opp) -> float:
-        if not me or not opp:
-            return 0.0
+    # --- Hazard chip helpers (accurate SR + Spikes, and immunity) ---
+    def _grounded(self, mon) -> bool:
         try:
-            our_types = [t for t in (me.types or []) if t is not None]
-            their_types = [t for t in (opp.types or []) if t is not None]
-            our_eff = max((opp.damage_multiplier(t) for t in our_types), default=1.0)
-            their_eff = max((me.damage_multiplier(t) for t in their_types), default=1.0)
+            if mon is None:
+                return False
+            tps = mon.types or []
+            if "Flying" in tps:
+                return False
+            ab = (getattr(mon, "ability", "") or "").lower()
+            if ab == "levitate":
+                return False
+            it = (getattr(mon, "item", "") or "").lower()
+            if it == "airballoon":
+                return False
+            return True
         except Exception:
-            our_eff, their_eff = 1.0, 1.0
-        spd = 0.1 if me.base_stats.get("spe", 0) > opp.base_stats.get("spe", 0) else (-0.1 if me.base_stats.get("spe", 0) < opp.base_stats.get("spe", 0) else 0.0)
-        hp_term = (self._hp(me) - self._hp(opp)) * 0.3
-        return (our_eff - their_eff) + spd + hp_term
+            return True
+
+    def _sr_multiplier(self, mon) -> float:
+        mult = 1.0
+        try:
+            for t in (mon.types or []):
+                if t is None:
+                    continue
+                if t in ("Fire", "Ice", "Flying", "Bug"):
+                    mult *= 2.0
+                elif t in ("Fighting", "Ground", "Steel"):
+                    mult *= 0.5
+        except Exception:
+            pass
+        return mult
 
     def _has_hazards_self(self, battle: AbstractBattle) -> bool:
         sc = battle.side_conditions or {}
@@ -319,16 +323,25 @@ class CustomAgent(Player):
 
     def _hazard_chip_estimate(self, battle: AbstractBattle, target=None) -> float:
         try:
-            if ((getattr(target, "item", "") or "").lower() == "heavydutyboots"):
+            it = ((getattr(target, "item", "") or "").lower())
+            if it == "heavydutyboots":
                 return 0.0
         except Exception:
             pass
         sc = battle.side_conditions or {}
         chip = 0.0
+        # SR with type multiplier
         if SideCondition.STEALTH_ROCK in sc:
-            chip += 0.125
-        spikes_layers = int(sc.get(SideCondition.SPIKES, 0) or 0)
-        chip += min(0.25, 0.125 * spikes_layers)
+            chip += 0.125 * self._sr_multiplier(target)
+        # Spikes (grounded only) 1=12.5%, 2=16.7%, 3=25%
+        if self._grounded(target):
+            layers = int(sc.get(SideCondition.SPIKES, 0) or 0)
+            if layers == 1:
+                chip += 0.125
+            elif layers == 2:
+                chip += 1 / 6
+            elif layers >= 3:
+                chip += 0.25
         return chip
 
     def _note_switch(self, battle: AbstractBattle):
@@ -364,10 +377,58 @@ class CustomAgent(Player):
             return False
         if self._is_pressure_turn(battle):
             return False
-        # good candidates to spike on
         tag = self._opp_tag(battle)
-        safe_targets = {"Arceus-Fairy", "Groudon", "Kingambit"}  # all tend to give us a turn
+        # removed Kingambit from "safe"
+        safe_targets = {"Arceus-Fairy", "Groudon"}
         return tag in safe_targets and self._hp(me) >= 0.6
+
+    # Finisher-aware, accuracy-weighted best attack
+    def _best_attack(self, battle: AbstractBattle):
+        me, opp = self._me(battle), self._opp(battle)
+        moves = (battle.available_moves or [])
+        if not me or not opp or not moves:
+            return None
+
+        # never Poltergeist into Kingambit
+        if "Giratina" in (me.species or "") and "Kingambit" in (opp.species or ""):
+            moves = [m for m in moves if m.id != "poltergeist"] or moves
+
+        def est_damage_frac(m):
+            bp = m.base_power or 0
+            if bp == 0:
+                return 0.0
+            stab = 1.2 if (m.type and me.types and m.type in me.types) else 1.0
+            try:
+                eff = opp.damage_multiplier(m)
+            except Exception:
+                eff = 1.0
+            acc = (m.accuracy or 100) / 100.0
+            hits = getattr(m, "expected_hits", 1) or 1
+            # tiny bias for the dominant attacking stat
+            phys_bias = 1.05 if (getattr(m, "category", None) and getattr(m.category, "name", "") == "PHYSICAL" and me.stats.get("atk", 0) >= me.stats.get("spa", 0)) else 1.0
+            return (bp * stab * eff * hits / 200.0) * acc * phys_bias
+
+        # Prefer accurate KO if available
+        cur_hp = getattr(opp, "current_hp_fraction", 1.0) or 1.0
+        ko_set = [m for m in moves if est_damage_frac(m) >= cur_hp - 0.05]
+        if ko_set:
+            return max(ko_set, key=lambda m: ((m.accuracy or 100), m.base_power))
+
+        return max(moves, key=lambda m: est_damage_frac(m))
+
+    def _matchup_score(self, me, opp) -> float:
+        if not me or not opp:
+            return 0.0
+        try:
+            our_types = [t for t in (me.types or []) if t is not None]
+            their_types = [t for t in (opp.types or []) if t is not None]
+            our_eff = max((opp.damage_multiplier(t) for t in our_types), default=1.0)
+            their_eff = max((me.damage_multiplier(t) for t in their_types), default=1.0)
+        except Exception:
+            our_eff, their_eff = 1.0, 1.0
+        spd = 0.1 if me.base_stats.get("spe", 0) > opp.base_stats.get("spe", 0) else (-0.1 if me.base_stats.get("spe", 0) < opp.base_stats.get("spe", 0) else 0.0)
+        hp_term = (self._hp(me) - self._hp(opp)) * 0.3
+        return (our_eff - their_eff) + spd + hp_term
 
     # ------------ policy ------------
     def choose_move(self, battle: AbstractBattle):
@@ -390,13 +451,17 @@ class CustomAgent(Player):
         if not me or not opp:
             return self.choose_random_move(battle)
 
-        # 0) Hard counters & critical patterns
-        # 0a) Deoxys-Speed – ALWAYS go Giratina quickly
-        if "Deoxys-Speed" in self._opp_name(battle) and "Giratina" not in (me.species or ""):
-            sw = self._bench_has(battle, "Giratina")
-            if sw:
-                self._note_switch(battle)
-                return self.create_order(sw)
+        # Deo-S flow: get Giratina in; on Giratina, pop Sash with Poltergeist before Defog
+        if "Deoxys-Speed" in self._opp_name(battle):
+            if "Giratina" not in (me.species or ""):
+                sw = self._bench_has(battle, "Giratina")
+                if sw:
+                    self._note_switch(battle)
+                    return self.create_order(sw)
+            else:
+                polt = self._move(battle, "poltergeist")
+                if polt:
+                    return self.create_order(polt)
 
         # 0b) Kingambit – Giratina burns/phazes; Arceus presses Earth Power; otherwise go Dondozo
         if "Kingambit" in self._opp_name(battle):
@@ -492,33 +557,38 @@ class CustomAgent(Player):
                 self._note_switch(battle)
                 return self.create_order(pref)
 
-        # 2) Hazard control — Defog when GIRATINA is in & we have hazards (be more willing) — Defog when GIRATINA is in & we have hazards (be more willing)
+        # 2) Hazard control — Defog smarter (gate around Deo-S and layer count)
         if "Giratina" in (me.species or "") and self._has_hazards_self(battle):
-            df = self._move(battle, "defog")
-            if df and self._hp(me) >= 0.4:
-                return self.create_order(df)
+            sc = battle.side_conditions or {}
+            spikes_layers = int(sc.get(SideCondition.SPIKES, 0) or 0)
+            webs = SideCondition.STICKY_WEB in sc
+            rocks = SideCondition.STEALTH_ROCK in sc
+            need_defog = ("Deoxys-Speed" not in self._opp_name(battle)) or (spikes_layers >= 2) or webs or (rocks and spikes_layers >= 1)
+            if need_defog and self._hp(me) >= 0.45:
+                df = self._move(battle, "defog")
+                if df:
+                    return self.create_order(df)
 
         # 3) Proactive phazing vs Eternatus even unboosted (to pre-empt Meteor Beam chains)
         if "Eternatus" in self._opp_name(battle):
             dt = self._move(battle, "dragontail")
             ww = self._move(battle, "whirlwind")
-            # Only use Dragon Tail if they're not Fairy and we actually have it on this mon
             if dt and not self._opp_has_type(battle, "Fairy"):
                 return self.create_order(dt)
             if ww:
                 return self.create_order(ww)
 
-        # 4) Healing (don’t heal into pressure) (don’t heal into pressure)
+        # 4) Healing (earlier when not under pressure)
         if not self._is_pressure_turn(battle):
             rec = self._move(battle, "recover")
-            if rec and self._hp(me) <= 0.45:
+            if rec and self._hp(me) <= 0.55:
                 return self.create_order(rec)
-        if self._move(battle, "rest") and self._hp(me) <= 0.35:
+        if self._move(battle, "rest") and self._hp(me) <= 0.45:
             return self.create_order(self._move(battle, "rest"))
         if getattr(me, "status", None) == "SLP" and self._move(battle, "sleeptalk"):
             return self.create_order(self._move(battle, "sleeptalk"))
 
-        # 5) Clodsire – lay Spikes early when it's safe (e.g., vs Arceus-Fairy)
+        # 5) Clodsire – lay Spikes early when it's safe (e.g., vs Arceus-Fairy/Groudon)
         if "Clodsire" in (me.species or "") and self._clod_should_spike_now(battle):
             s = self._move(battle, "spikes")
             if s:
