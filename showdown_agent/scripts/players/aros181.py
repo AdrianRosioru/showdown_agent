@@ -67,18 +67,20 @@ Calm Nature
 
 
 class CustomAgent(Player):
-    """V6.4 – Eternatus lead + matchup-aware Eternatus turns
+    """V6.4+ – tuned for 'uber-simple' bump
 
     - Force Eternatus lead
-    - Eternatus checks matchup first (Koraidon/Zacian/Groudon/etc.) before acting
-    - Safe Cosmic Power gate for Eternatus
-    - Keep switch damping (matchup gain – hazard chip) to avoid ping-pong
+    - Matchup-aware Eternatus turns
+    - Looser CP gate; earlier hazard+phaze loop
+    - Secure-KO bias; small healing/spikes/Defog tweaks
+    - Switch damping (matchup gain – hazard chip)
     """
 
     # ------------ settings ------------
     STATIC_LEAD_NAME: Optional[str] = "Eternatus"  # lead with Eternatus
 
     THREAT_SWITCH: Dict[str, List[str]] = {
+        # --- originals you had ---
         "Deoxys-Speed":   ["Giratina"],
         "Zacian-Crowned": ["Dondozo", "Ho-Oh", "Giratina"],
         "Zacian":         ["Dondozo", "Ho-Oh", "Giratina"],
@@ -89,14 +91,103 @@ class CustomAgent(Player):
         "Eternatus":      ["Clodsire", "Arceus", "Eternatus"],
         "Arceus-Fairy":   ["Clodsire", "Ho-Oh", "Giratina"],
         "Groudon":        ["Ho-Oh", "Giratina", "Arceus"],
+
+        # --- new top-40 adds ---
+        "Miraidon":               ["Clodsire", "Arceus", "Eternatus"],
+        "Necrozma-Dusk-Mane":     ["Ho-Oh", "Dondozo", "Giratina"],
+        "Dialga-Origin":          ["Arceus", "Ho-Oh", "Eternatus"],
+        "Palkia-Origin":          ["Arceus", "Eternatus", "Ho-Oh"],
+        "Calyrex-Shadow":         ["Eternatus", "Arceus", "Giratina"],
+        "Calyrex-Ice":            ["Ho-Oh", "Dondozo", "Giratina"],
+        "Yveltal":                ["Arceus", "Eternatus", "Ho-Oh"],
+        "Xerneas":                ["Ho-Oh", "Clodsire", "Eternatus"],
+        "Lunala":                 ["Eternatus", "Ho-Oh", "Giratina"],
+        "Solgaleo":               ["Ho-Oh", "Dondozo", "Giratina"],
+        "Zamazenta-Crowned":      ["Ho-Oh", "Giratina", "Dondozo"],
+        "Deoxys-Attack":          ["Giratina", "Ho-Oh", "Dondozo"],
+        "Deoxys-Defense":         ["Giratina", "Ho-Oh", "Arceus"],
+        "Gholdengo":              ["Ho-Oh", "Arceus", "Eternatus"],
+        "Glimmora":               ["Clodsire", "Ho-Oh", "Giratina"],
+        "Great Tusk":             ["Ho-Oh", "Giratina", "Dondozo"],
+        "Ting-Lu":                ["Arceus", "Ho-Oh", "Dondozo"],
+        "Magearna":               ["Ho-Oh", "Eternatus", "Clodsire"],
+        "Darkrai":                ["Arceus", "Eternatus", "Ho-Oh"],
+        "Chien-Pao":              ["Dondozo", "Ho-Oh", "Giratina"],
+        "Chi-Yu":                 ["Eternatus", "Arceus", "Ho-Oh"],
+        "Mewtwo":                 ["Eternatus", "Giratina", "Ho-Oh"],
+
+        # Arceus forms (common ones)
+        "Arceus-Water":           ["Eternatus", "Clodsire", "Arceus"],
+        "Arceus-Ground":          ["Dondozo", "Giratina", "Ho-Oh"],
+        "Arceus-Dark":            ["Arceus", "Dondozo", "Ho-Oh"],
+        "Arceus-Steel":           ["Ho-Oh", "Dondozo", "Giratina"],
+        "Arceus-Poison":          ["Clodsire", "Eternatus", "Giratina"],
+        "Arceus-Dragon":          ["Arceus", "Dondozo", "Ho-Oh"],
+        "Arceus-Ghost":           ["Dondozo", "Ho-Oh", "Giratina"],
     }
 
     HIGH_PRESSURE: Tuple[str, ...] = (
-        "Zacian-Crowned", "Zacian", "Koraidon", "Kingambit", "Kyogre", "Eternatus", "Rayquaza"
+        "Zacian-Crowned", "Zacian", "Koraidon", "Kingambit", "Kyogre", "Eternatus", "Rayquaza",
+        "Miraidon", "Xerneas", "Calyrex-Shadow", "Deoxys-Attack", "Magearna", "Chien-Pao",
+        "Chi-Yu", "Necrozma-Dusk-Mane", "Yveltal", "Dialga-Origin", "Palkia-Origin"
     )
 
     SWITCH_COOLDOWN_TURNS = 1
     LEAD_PRIORITY = ["Eternatus", "Clodsire", "Giratina", "Dondozo", "Arceus", "Ho-Oh"]
+
+    TOP40_PIVOTS: Dict[str, Tuple[str, ...]] = {
+        "Miraidon":           ("Clodsire", "Arceus", "Eternatus"),
+        "Necrozma-Dusk-Mane": ("Ho-Oh", "Dondozo", "Giratina"),
+        "Dialga-Origin":      ("Arceus", "Ho-Oh", "Eternatus"),
+        "Palkia-Origin":      ("Arceus", "Eternatus", "Ho-Oh"),
+        "Calyrex-Shadow":     ("Eternatus", "Arceus", "Giratina"),
+        "Calyrex-Ice":        ("Ho-Oh", "Dondozo", "Giratina"),
+        "Yveltal":            ("Arceus", "Eternatus", "Ho-Oh"),
+        "Xerneas":            ("Ho-Oh", "Clodsire", "Eternatus"),
+        "Lunala":             ("Eternatus", "Ho-Oh", "Giratina"),
+        "Solgaleo":           ("Ho-Oh", "Dondozo", "Giratina"),
+        "Zamazenta-Crowned":  ("Ho-Oh", "Giratina", "Dondozo"),
+        "Deoxys-Attack":      ("Giratina", "Ho-Oh", "Dondozo"),
+        "Deoxys-Defense":     ("Giratina", "Ho-Oh", "Arceus"),
+        "Gholdengo":          ("Ho-Oh", "Arceus", "Eternatus"),
+        "Glimmora":           ("Clodsire", "Ho-Oh", "Giratina"),
+        "Great Tusk":         ("Ho-Oh", "Giratina", "Dondozo"),
+        "Ting-Lu":            ("Arceus", "Ho-Oh", "Dondozo"),
+        "Magearna":           ("Ho-Oh", "Eternatus", "Clodsire"),
+        "Darkrai":            ("Arceus", "Eternatus", "Ho-Oh"),
+        "Chien-Pao":          ("Dondozo", "Ho-Oh", "Giratina"),
+        "Chi-Yu":             ("Eternatus", "Arceus", "Ho-Oh"),
+        "Mewtwo":             ("Eternatus", "Giratina", "Ho-Oh"),
+        "Arceus-Water":       ("Eternatus", "Clodsire", "Arceus"),
+        "Arceus-Ground":      ("Dondozo", "Giratina", "Ho-Oh"),
+        "Arceus-Dark":        ("Arceus", "Dondozo", "Ho-Oh"),
+        "Arceus-Steel":       ("Ho-Oh", "Dondozo", "Giratina"),
+        "Arceus-Poison":      ("Clodsire", "Eternatus", "Giratina"),
+        "Arceus-Dragon":      ("Arceus", "Dondozo", "Ho-Oh"),
+        "Arceus-Ghost":       ("Dondozo", "Ho-Oh", "Giratina"),
+    }
+
+    # --- micro-tuning knobs for uber-simple ---
+    GENERIC_RECOVER_THRESHOLD = 0.45
+    ETERNATUS_CP_MINHP = 0.62
+    SECURE_KO_HP = 0.28
+    PHYSICAL_THREATS = {
+        "Zacian", "Zacian-Crowned", "Koraidon", "Groudon",
+        "Rayquaza", "Chien-Pao", "Kingambit",
+        "Arceus-Ground", "Arceus-Dragon", "Arceus-Dark"
+    }
+    EARLY_SPIKES_TARGETS = {
+        "Arceus-Fairy", "Groudon", "Kingambit", "Zacian", "Zacian-Crowned",
+        "Koraidon", "Ting-Lu", "Great Tusk", "Deoxys-Defense", "Deoxys-Speed"
+    }
+
+    def _try_pivots(self, battle: AbstractBattle, order: Tuple[str, ...], threshold: float = 0.18):
+        for name in order:
+            sw = self._bench_has(battle, name)
+            if sw and self._switch_gain(battle, sw) > threshold:
+                self._note_switch(battle)
+                return self.create_order(sw)
+        return None
 
     def teampreview(self, battle):
          return "/team 612345"
@@ -303,25 +394,31 @@ class CustomAgent(Player):
 
         return max(cands, key=ms)
 
-    # --- new: Eternatus setup safety gate
+    # --- tiny helper: physical threat heuristic ---
+    def _is_physical_threat(self, battle: AbstractBattle) -> bool:
+        tag = self._opp_tag(battle)
+        if tag in self.PHYSICAL_THREATS:
+            return True
+        opp = self._opp(battle)
+        try:
+            return bool(opp and opp.base_stats.get("atk", 0) >= opp.base_stats.get("spa", 0) + 20)
+        except Exception:
+            return False
+
+    # --- Eternatus setup safety gate (looser for snowballing) ---
     def _eternatus_setup_safe(self, battle: AbstractBattle) -> bool:
-        """Only allow Cosmic Power if opp likely can't punish immediately."""
         opp = self._opp(battle)
         if not opp:
             return False
         name = (opp.species or "")
-        # hard no into these threats/types
         scary_names = ("Koraidon", "Zacian", "Kingambit", "Rayquaza", "Groudon", "Deoxys-Speed")
         if any(s in name for s in scary_names):
             return False
-        scary_types = ("Ground", "Psychic", "Ice", "Dragon")
-        if any(self._opp_has_type(battle, t) for t in scary_types):
+        if any(self._opp_has_type(battle, t) for t in ("Ground", "Psychic", "Ice", "Dragon")):
             return False
-        # don't try at low HP
-        me = self._me(battle)
-        return self._hp(me) >= 0.70
+        return self._hp(self._me(battle)) >= self.ETERNATUS_CP_MINHP
 
-    # extra: simple predicate for safe early Spikes (unchanged)
+    # --- Clodsire: slightly earlier Spikes into common simple leads ---
     def _clod_should_spike_now(self, battle: AbstractBattle) -> bool:
         opp = self._opp(battle)
         me = self._me(battle)
@@ -332,8 +429,11 @@ class CustomAgent(Player):
         if self._is_pressure_turn(battle):
             return False
         tag = self._opp_tag(battle)
-        safe_targets = {"Arceus-Fairy", "Groudon", "Kingambit"}
-        return tag in safe_targets and self._hp(me) >= 0.6
+        if tag in {"Arceus-Fairy", "Groudon", "Kingambit"}:
+            return self._hp(me) >= 0.6
+        if self._turn(battle) <= 2 and tag in self.EARLY_SPIKES_TARGETS and self._hp(me) >= 0.7:
+            return True
+        return False
 
     # ------------ policy ------------
     def choose_move(self, battle: AbstractBattle):
@@ -358,8 +458,9 @@ class CustomAgent(Player):
 
         oname = self._opp_name(battle)
         me_name = (me.species or "")
+        tag = self._opp_tag(battle)  # NEW
 
-        # --- NEW: Eternatus field logic happens first (no blind fighting)
+        # --- Eternatus field logic happens first (no blind fighting)
         if "Eternatus" in me_name:
             # 1) immediate threat-specific pivots (gated by real gain)
             if "Koraidon" in oname:
@@ -379,7 +480,6 @@ class CustomAgent(Player):
                 if sw and self._switch_gain(battle, sw) > 0.20:
                     self._note_switch(battle); return self.create_order(sw)
             if "Kingambit" in oname:
-                # If healthy, we can Flamethrower; otherwise pivot to Giratina
                 ft = self._move(battle, "flamethrower")
                 if self._hp(me) >= 0.70 and ft:
                     return self.create_order(ft)
@@ -394,6 +494,12 @@ class CustomAgent(Player):
                 sw = self._bench_has(battle, "Giratina")
                 if sw and self._switch_gain(battle, sw) > 0.20:
                     self._note_switch(battle); return self.create_order(sw)
+
+            for k, order in self.TOP40_PIVOTS.items():
+                if k in oname:
+                    mv = self._try_pivots(battle, order, threshold=0.18)
+                    if mv:
+                        return mv
 
             # 2) mirrors & Eternatus checks
             if "Eternatus" in oname:
@@ -420,11 +526,10 @@ class CustomAgent(Player):
             ft = self._move(battle, "flamethrower")
             if ft:
                 return self.create_order(ft)
-            # fallthrough to general logic if nothing above fired
 
         # -------- existing logic below --------
 
-        # 0) Hard counters & critical patterns (tempered by switch_gain in our Eternatus section already)
+        # 0) Hard counters & critical patterns
         if "Deoxys-Speed" in oname and "Giratina" not in me_name:
             sw = self._bench_has(battle, "Giratina")
             if sw and self._switch_gain(battle, sw) > 0.20:
@@ -495,6 +600,40 @@ class CustomAgent(Player):
             if jd:
                 return self.create_order(jd)
 
+        for key, order in self.TOP40_PIVOTS.items():
+            if key in oname:
+                if not any(best in me_name for best in (order[0],)):
+                    mv = self._try_pivots(battle, order, threshold=0.22)
+                    if mv:
+                        return mv
+
+        # --- NEW: Ho-Oh burn bias vs physical attackers ---
+        if "Ho-Oh" in me_name and self._is_physical_threat(battle):
+            sf = self._move(battle, "sacredfire")
+            if sf and not self._opp_has_type(battle, "Fire"):
+                return self.create_order(sf)
+
+        # --- NEW: Dondozo rests a bit earlier vs top breakers ---
+        if "Dondozo" in me_name and tag in {"Zacian", "Zacian-Crowned", "Koraidon", "Rayquaza"}:
+            r = self._move(battle, "rest")
+            if r and self._hp(me) <= 0.68:
+                return self.create_order(r)
+
+        # --- NEW: shuffle when hazards are on them (chip snowball) ---
+        if self._has_hazards_opp(battle) and not self._opp_has_type(battle, "Fairy"):
+            if "Eternatus" in me_name:
+                dt = self._move(battle, "dragontail")
+                if dt:
+                    return self.create_order(dt)
+            if "Giratina" in me_name:
+                dt = self._move(battle, "dragontail")
+                if dt:
+                    return self.create_order(dt)
+            if "Ho-Oh" in me_name and tag != "Eternatus":
+                ww = self._move(battle, "whirlwind")
+                if ww:
+                    return self.create_order(ww)
+
         # 1) Emergency vs boosts
         opp_boosted = any(v > 0 for v in (getattr(opp, "boosts", {}) or {}).values())
         if opp_boosted:
@@ -529,10 +668,10 @@ class CustomAgent(Player):
                 self._note_switch(battle)
                 return self.create_order(pref)
 
-        # 2) Hazard control — Defog with Giratina if we have hazards
+        # 2) Hazard control — Defog slightly earlier
         if "Giratina" in me_name and self._has_hazards_self(battle):
             df = self._move(battle, "defog")
-            if df and self._hp(me) >= 0.4:
+            if df and self._hp(me) >= 0.3:
                 return self.create_order(df)
 
         # 3) Proactive phazing vs Eternatus (if not handled above)
@@ -544,10 +683,15 @@ class CustomAgent(Player):
             if ww:
                 return self.create_order(ww)
 
-        # 4) Healing
+        # --- NEW: secure-KO bias (don't heal and miss a kill)
+        atk = self._best_attack(battle)
+        if atk and self._hp(opp) <= self.SECURE_KO_HP:
+            return self.create_order(atk)
+
+        # 4) Healing (greedier generic gate)
         if not self._is_pressure_turn(battle):
             rec = self._move(battle, "recover")
-            if rec and self._hp(me) <= 0.50:
+            if rec and self._hp(me) <= self.GENERIC_RECOVER_THRESHOLD:
                 return self.create_order(rec)
         if self._move(battle, "rest") and self._hp(me) <= 0.45:
             return self.create_order(self._move(battle, "rest"))
