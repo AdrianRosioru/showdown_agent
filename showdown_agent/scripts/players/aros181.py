@@ -98,53 +98,8 @@ class CustomAgent(Player):
     SWITCH_COOLDOWN_TURNS = 1
     LEAD_PRIORITY = ["Eternatus", "Clodsire", "Giratina", "Dondozo", "Arceus", "Ho-Oh"]
 
-    # ------------ lifecycle hooks ------------
     def teampreview(self, battle):
-        mons = list(battle.team.values())
-        if not mons:
-            return None
-
-        try:
-            opp_has = [p.species or "" for p in (battle.opponent_team or {}).values() if p]
-
-            def idx(name: str):
-                for i, m in enumerate(mons):
-                    if m and name.lower() in (m.species or "").lower():
-                        return i
-                return None
-
-            # keep your smart cases; static lead still enforced below
-            if any("koraidon" in n.lower() for n in opp_has):
-                ai = idx("Arceus")
-                if ai is not None:
-                    desired = [ai] + [i for i in range(len(mons)) if i != ai]
-                    return "/team " + "".join(str(i + 1) for i in desired)
-            if any("zacian" in n.lower() for n in opp_has) or any("kingambit" in n.lower() for n in opp_has):
-                di = idx("Dondozo")
-                if di is not None:
-                    desired = [di] + [i for i in range(len(mons)) if i != di]
-                    return "/team " + "".join(str(i + 1) for i in desired)
-        except Exception:
-            pass
-
-        desired = []
-        if self.STATIC_LEAD_NAME:
-            for i, mon in enumerate(mons):
-                if mon and self.STATIC_LEAD_NAME.lower() in (mon.species or "").lower():
-                    desired.append(i)
-                    break
-        if not desired:
-            for want in self.LEAD_PRIORITY:
-                for i, mon in enumerate(mons):
-                    if i in desired or not mon:
-                        continue
-                    if want.lower() in (mon.species or "").lower():
-                        desired.append(i)
-                        break
-        for i in range(len(mons)):
-            if i not in desired:
-                desired.append(i)
-        return "/team " + "".join(str(i + 1) for i in desired)
+         return "/team 612345"
 
     def __init__(self, *args, **kwargs):
         super().__init__(team=team, *args, **kwargs)
