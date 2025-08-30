@@ -67,13 +67,13 @@ Calm Nature
 
 
 class CustomAgent(Player):
-    """V6.4+ – tuned for 'uber-simple' bump
+    """V6.5 – adds anti-OU6 pack (Torn-T / Rotom-W / Metagross / Cobalion / Zarude-Dada / Clodsire)
 
-    - Force Eternatus lead
-    - Matchup-aware Eternatus turns
-    - Looser CP gate; earlier hazard+phaze loop
-    - Secure-KO bias; small healing/spikes/Defog tweaks
-    - Switch damping (matchup gain – hazard chip)
+    - New threat tables & pivots for the six
+    - Mark Metagross/Cobalion/Zarude as physical threats (Ho-Oh burn bias)
+    - Encourage Spikes vs VoltTurn cores (Torn-T / Rotom-W / Cobalion / Metagross / Zarude)
+    - Guard: never EQ Rotom-W with Clodsire (Levitate)
+    - Bias Arceus-Fairy Earth Power vs opposing Clodsire
     """
 
     # ------------ settings ------------
@@ -124,6 +124,15 @@ class CustomAgent(Player):
         "Arceus-Poison":          ["Clodsire", "Eternatus", "Giratina"],
         "Arceus-Dragon":          ["Arceus", "Dondozo", "Ho-Oh"],
         "Arceus-Ghost":           ["Dondozo", "Ho-Oh", "Giratina"],
+
+        # --- NEW: Anti-OU6 you provided ---
+        "Tornadus-Therian":       ["Ho-Oh", "Eternatus", "Arceus"],
+        "Rotom-Wash":             ["Clodsire", "Eternatus", "Arceus"],
+        "Metagross":              ["Dondozo", "Ho-Oh", "Giratina"],
+        "Cobalion":               ["Ho-Oh", "Giratina", "Dondozo"],
+        "Zarude-Dada":            ["Ho-Oh", "Dondozo", "Arceus"],
+        "Zarude":                 ["Ho-Oh", "Dondozo", "Arceus"],
+        "Clodsire":               ["Arceus", "Ho-Oh", "Giratina"],
     }
 
     HIGH_PRESSURE: Tuple[str, ...] = (
@@ -165,6 +174,15 @@ class CustomAgent(Player):
         "Arceus-Poison":      ("Clodsire", "Eternatus", "Giratina"),
         "Arceus-Dragon":      ("Arceus", "Dondozo", "Ho-Oh"),
         "Arceus-Ghost":       ("Dondozo", "Ho-Oh", "Giratina"),
+
+        # --- NEW: Anti-OU6 pivots ---
+        "Tornadus-Therian":   ("Ho-Oh", "Eternatus", "Arceus"),
+        "Rotom-Wash":         ("Clodsire", "Eternatus", "Arceus"),
+        "Metagross":          ("Dondozo", "Ho-Oh", "Giratina"),
+        "Cobalion":           ("Ho-Oh", "Giratina", "Dondozo"),
+        "Zarude-Dada":        ("Ho-Oh", "Dondozo", "Arceus"),
+        "Zarude":             ("Ho-Oh", "Dondozo", "Arceus"),
+        "Clodsire":           ("Arceus", "Ho-Oh", "Giratina"),
     }
 
     # --- micro-tuning knobs for uber-simple ---
@@ -174,11 +192,15 @@ class CustomAgent(Player):
     PHYSICAL_THREATS = {
         "Zacian", "Zacian-Crowned", "Koraidon", "Groudon",
         "Rayquaza", "Chien-Pao", "Kingambit",
-        "Arceus-Ground", "Arceus-Dragon", "Arceus-Dark"
+        "Arceus-Ground", "Arceus-Dragon", "Arceus-Dark",
+        # NEW
+        "Metagross", "Cobalion", "Zarude", "Zarude-Dada"
     }
     EARLY_SPIKES_TARGETS = {
         "Arceus-Fairy", "Groudon", "Kingambit", "Zacian", "Zacian-Crowned",
-        "Koraidon", "Ting-Lu", "Great Tusk", "Deoxys-Defense", "Deoxys-Speed"
+        "Koraidon", "Ting-Lu", "Great Tusk", "Deoxys-Defense", "Deoxys-Speed",
+        # NEW: VoltTurn core—punish switches
+        "Tornadus-Therian", "Rotom-Wash", "Cobalion", "Metagross", "Zarude", "Zarude-Dada"
     }
 
     def _try_pivots(self, battle: AbstractBattle, order: Tuple[str, ...], threshold: float = 0.18):
@@ -495,6 +517,7 @@ class CustomAgent(Player):
                 if sw and self._switch_gain(battle, sw) > 0.20:
                     self._note_switch(battle); return self.create_order(sw)
 
+            # NEW: quick pivots into the six OU threats
             for k, order in self.TOP40_PIVOTS.items():
                 if k in oname:
                     mv = self._try_pivots(battle, order, threshold=0.18)
@@ -600,6 +623,43 @@ class CustomAgent(Player):
             if jd:
                 return self.create_order(jd)
 
+        # --- NEW: targeted micro for the six OU threats ---
+
+        # Rotom-Wash: don't EQ with Clodsire (Levitate) -> set Spikes or pivot
+        if "Rotom-Wash" in oname and "Clodsire" in me_name:
+            s = self._move(battle, "spikes")
+            if s and not self._has_hazards_opp(battle):
+                return self.create_order(s)
+            # prefer Eternatus or Arceus after laying hazards / if no good hit
+            pref = self._bench_has(battle, "Eternatus") or self._bench_has(battle, "Arceus")
+            if pref and self._switch_gain(battle, pref) > 0.05:
+                self._note_switch(battle)
+                return self.create_order(pref)
+            # last resort: Recover if low
+            rec = self._move(battle, "recover")
+            if rec and self._hp(me) <= 0.5:
+                return self.create_order(rec)
+
+        # Tornadus-Therian: if it boosts, phaze; otherwise Ho-Oh/Eternatus pivots already covered
+        if "Tornadus-Therian" in oname:
+            if any(v > 0 for v in (getattr(opp, "boosts", {}) or {}).values()):
+                dt = self._move(battle, "dragontail")
+                if dt and "Eternatus" in me_name:
+                    return self.create_order(dt)
+
+        # Metagross / Cobalion / Zarude: Ho-Oh burn bias already applied via physical tag,
+        # but if Dondozo is in we rest a touch earlier on repeated pressure
+        if tag in {"Metagross", "Cobalion", "Zarude", "Zarude-Dada"} and "Dondozo" in me_name:
+            r = self._move(battle, "rest")
+            if r and self._hp(me) <= 0.70:
+                return self.create_order(r)
+
+        # Opposing Clodsire: prefer Arceus-Fairy Earth Power pressure
+        if tag == "Clodsire" and "Arceus" in me_name:
+            ep = self._move(battle, "earthpower")
+            if ep:
+                return self.create_order(ep)
+
         for key, order in self.TOP40_PIVOTS.items():
             if key in oname:
                 if not any(best in me_name for best in (order[0],)):
@@ -607,19 +667,19 @@ class CustomAgent(Player):
                     if mv:
                         return mv
 
-        # --- NEW: Ho-Oh burn bias vs physical attackers ---
+        # --- Ho-Oh burn bias vs physical attackers ---
         if "Ho-Oh" in me_name and self._is_physical_threat(battle):
             sf = self._move(battle, "sacredfire")
             if sf and not self._opp_has_type(battle, "Fire"):
                 return self.create_order(sf)
 
-        # --- NEW: Dondozo rests a bit earlier vs top breakers ---
+        # --- Dondozo rests a bit earlier vs top breakers ---
         if "Dondozo" in me_name and tag in {"Zacian", "Zacian-Crowned", "Koraidon", "Rayquaza"}:
             r = self._move(battle, "rest")
             if r and self._hp(me) <= 0.68:
                 return self.create_order(r)
 
-        # --- NEW: shuffle when hazards are on them (chip snowball) ---
+        # --- shuffle when hazards are on them (chip snowball) ---
         if self._has_hazards_opp(battle) and not self._opp_has_type(battle, "Fairy"):
             if "Eternatus" in me_name:
                 dt = self._move(battle, "dragontail")
@@ -683,7 +743,7 @@ class CustomAgent(Player):
             if ww:
                 return self.create_order(ww)
 
-        # --- NEW: secure-KO bias (don't heal and miss a kill)
+        # --- secure-KO bias (don't heal and miss a kill)
         atk = self._best_attack(battle)
         if atk and self._hp(opp) <= self.SECURE_KO_HP:
             return self.create_order(atk)
@@ -716,11 +776,15 @@ class CustomAgent(Player):
             if w and opp and opp.status is None and (not opp.types or "Fire" not in opp.types):
                 return self.create_order(w)
 
-        # 8) Clodsire default if not spiking
+        # 8) Clodsire default if not spiking (avoid EQ into Levitate Rotom)
         if "Clodsire" in me_name and not self._is_pressure_turn(battle):
-            eq = self._move(battle, "earthquake")
-            if eq:
-                return self.create_order(eq)
+            if "Rotom-Wash" in oname:
+                # already handled above: set Spikes/pivot/recover
+                pass
+            else:
+                eq = self._move(battle, "earthquake")
+                if eq:
+                    return self.create_order(eq)
 
         # 9) Controlled scaling
         if not self._is_pressure_turn(battle) and self._hp(me) >= 0.6:
