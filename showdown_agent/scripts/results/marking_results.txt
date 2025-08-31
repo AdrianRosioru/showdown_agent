@@ -1,1 +1,1 @@
-aros181_counter #1 10.0
+aros181_general #2 9.5

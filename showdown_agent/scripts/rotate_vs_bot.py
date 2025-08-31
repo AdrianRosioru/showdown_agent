@@ -104,8 +104,8 @@ async def run_all(player_file: str, bot_name: str, runs: int, battle_format: str
     total_games = 0
 
     for pos in range(6):
-        # if pos < 5:
-        #     continue
+        if pos < 5:
+            continue
         order = team_order_for_lead(pos)
         print(f"→ Lead position {pos} (sending /team {order})")
 
