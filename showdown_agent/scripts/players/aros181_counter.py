@@ -67,25 +67,23 @@ Calm Nature
 
 
 class CustomAgent(Player):
-    """V6.5 – unified threat pivot dictionary"""
+    """V7 – Ubers-expanded threat routing with focused micro"""
 
     # ------------ settings ------------
     STATIC_LEAD_NAME: Optional[str] = "eternatus"  # lead with eternatus
 
+    # Switch suggestions for ALL listed Ubers (keys are lowercased, hyphens removed)
     THREAT_SWITCH: Dict[str, Tuple[str, ...]] = {
-        # --- originals ---
-        "deoxysspeed":   ("giratina",),
+        # --- your existing core 12 / knowns ---
+        "deoxysspeed":   ("giratina", "eternatus"),
+        "kingambit":     ("giratina", "dondozo", "hooh"),
         "zaciancrowned": ("dondozo", "hooh", "giratina"),
         "zacian":        ("dondozo", "hooh", "giratina"),
         "koraidon":      ("arceusfairy", "hooh", "dondozo"),
-        "kingambit":     ("giratina", "dondozo", "hooh"),
-        "rayquaza":      ("dondozo", "hooh", "giratina"),
-        "kyogre":        ("eternatus", "arceusfairy", "hooh"),
-        "eternatus":     ("clodsire", "arceusfairy", "eternatus"),
+        "eternatus":     ("clodsire", "giratina", "arceusfairy"),
         "arceusfairy":   ("clodsire", "hooh", "giratina"),
-        "groudon":       ("hooh", "giratina", "arceusfairy"),
-
-        # --- OU6 adds ---
+        "groudon":       ("hooh", "dondozo", "giratina"),
+        # OU6 (kept)
         "tornadustherian": ("hooh", "eternatus", "arceusfairy"),
         "rotomwash":       ("clodsire", "eternatus", "arceusfairy"),
         "metagross":       ("dondozo", "hooh", "giratina"),
@@ -93,6 +91,76 @@ class CustomAgent(Player):
         "zarudedada":      ("hooh", "dondozo", "arceusfairy"),
         "zarude":          ("hooh", "dondozo", "arceusfairy"),
         "clodsire":        ("arceusfairy", "hooh", "giratina"),
+
+        # -------- UBERS POOL (newly added) --------
+        "annihilape": ("hooh", "dondozo", "arceusfairy"),
+        "arceus": ("giratina", "dondozo", "hooh"),
+        "arceusbug": ("hooh", "giratina", "eternatus"),
+        "arceusdark": ("arceusfairy", "dondozo", "hooh"),
+        "arceusdragon": ("arceusfairy", "dondozo", "giratina"),
+        "arceuselectric": ("clodsire", "arceusfairy", "giratina"),
+        "arceusfighting": ("giratina", "hooh", "arceusfairy"),
+        "arceusfire": ("eternatus", "dondozo", "arceusfairy"),
+        "arceusflying": ("dondozo", "hooh", "eternatus"),
+        "arceusghost": ("arceusfairy", "hooh", "clodsire"),
+        "arceusgrass": ("hooh", "eternatus", "giratina"),
+        "arceusground": ("hooh", "dondozo", "giratina"),
+        "arceusice": ("arceusfairy", "hooh", "dondozo"),
+        "arceuspoison": ("clodsire", "eternatus", "giratina"),
+        "arceuspsychic": ("hooh", "giratina", "arceusfairy"),
+        "arceusrock": ("dondozo", "clodsire", "giratina"),
+        "arceussteel": ("hooh", "clodsire", "eternatus"),
+        "arceuswater": ("eternatus", "dondozo", "arceusfairy"),
+
+        "archaludon": ("clodsire", "arceusfairy", "hooh"),
+        "baxcalibur": ("dondozo", "hooh", "arceusfairy"),
+        "calyrexice": ("dondozo", "hooh", "giratina"),
+        "chienpao": ("dondozo", "hooh", "arceusfairy"),
+        "chiyu": ("eternatus", "hooh", "arceusfairy"),
+        "deoxys": ("giratina", "eternatus", "hooh"),
+        "deoxysattack": ("giratina", "eternatus", "hooh"),
+        "dialga": ("clodsire", "eternatus", "hooh"),
+        "dialgaorigin": ("clodsire", "eternatus", "hooh"),
+        "espathra": ("clodsire", "hooh", "giratina"),
+        "fluttermane": ("clodsire", "eternatus", "hooh"),
+        "giratina": ("arceusfairy", "eternatus", "hooh"),
+        "giratinaorigin": ("arceusfairy", "eternatus", "hooh"),
+        "gougingfire": ("dondozo", "hooh", "arceusfairy"),
+        "hooh": ("eternatus", "dondozo", "giratina"),
+        "ironbundle": ("arceusfairy", "hooh", "eternatus"),
+        "kyogre": ("eternatus", "arceusfairy", "hooh"),
+        "kyuremblack": ("dondozo", "hooh", "arceusfairy"),
+        "kyuremwhite": ("arceusfairy", "clodsire", "dondozo"),
+        "landorus": ("hooh", "dondozo", "arceusfairy"),
+        "lugia": ("eternatus", "giratina", "arceusfairy"),
+        "lunala": ("eternatus", "hooh", "arceusfairy"),
+        "magearna": ("hooh", "clodsire", "eternatus"),
+        "magearnaoriginal": ("hooh", "clodsire", "eternatus"),
+        "mewtwo": ("hooh", "giratina", "arceusfairy"),
+        "necrozmadawnwings": ("hooh", "arceusfairy", "giratina"),
+        "necrozmaduskmane": ("hooh", "giratina", "dondozo"),
+        "ogerponhearthflame": ("hooh", "dondozo", "eternatus"),
+        "palafin": ("dondozo", "eternatus", "arceusfairy"),
+        "palafinhero": ("dondozo", "eternatus", "arceusfairy"),
+        "palkia": ("eternatus", "arceusfairy", "dondozo"),
+        "palkiaorigin": ("eternatus", "arceusfairy", "dondozo"),
+        "rayquaza": ("dondozo", "hooh", "giratina"),
+        "regieleki": ("clodsire", "arceusfairy", "giratina"),
+        "reshiram": ("arceusfairy", "eternatus", "dondozo"),
+        "roaringmoon": ("dondozo", "hooh", "arceusfairy"),
+        "shayminsky": ("hooh", "eternatus", "arceusfairy"),
+        "sneasler": ("giratina", "hooh", "dondozo"),
+        "solgaleo": ("hooh", "giratina", "dondozo"),
+        "spectrier": ("clodsire", "hooh", "giratina"),
+        "terapagos": ("clodsire", "giratina", "hooh"),
+        "terapagosstellar": ("clodsire", "giratina", "hooh"),
+        "terapagosterastal": ("clodsire", "giratina", "hooh"),
+        "ursalunabloodmoon": ("giratina", "clodsire", "hooh"),
+        "urshifu": ("arceusfairy", "dondozo", "hooh"),
+        "urshifurapidstrike": ("arceusfairy", "dondozo", "giratina"),
+        "volcarona": ("eternatus", "hooh", "clodsire"),
+        "zamazentacrowned": ("hooh", "giratina", "dondozo"),
+        "zekrom": ("arceusfairy", "giratina", "clodsire"),
     }
 
     HIGH_PRESSURE: Tuple[str, ...] = (
@@ -102,23 +170,12 @@ class CustomAgent(Player):
     SWITCH_COOLDOWN_TURNS = 1
     LEAD_PRIORITY = ["eternatus", "clodsire", "giratina", "dondozo", "arceusfairy", "hooh"]
 
-    # --- micro-tuning knobs for uber-simple ---
     GENERIC_RECOVER_THRESHOLD = 0.45
     ETERNATUS_CP_MINHP = 0.62
     SECURE_KO_HP = 0.28
-    PHYSICAL_THREATS = {
-        "zaciancrowned", "koraidon",
-        "kingambit",
-        "metagross", "cobalion", "zarude", "zarudedada"
-    }
-    EARLY_SPIKES_TARGETS = {
-        "arceusfairy", "groudon", "kingambit", "zaciancrowned",
-        "koraidon", "deoxysspeed",
-        "tornadustherian", "rotomwash", "cobalion", "metagross", "zarudedada"
-    }
 
     def teampreview(self, battle):
-         return "/team 512346"
+        return "/team 512346"
 
     def __init__(self, *args, **kwargs):
         super().__init__(team=team, *args, **kwargs)
@@ -149,10 +206,7 @@ class CustomAgent(Player):
 
     def _opp_tag(self, battle) -> str:
         o = self._opp(battle)
-        if not o:
-            return ""
-        name = (o.species or "")
-        return name
+        return (o.species or "") if o else ""
 
     def _opp_has_type(self, battle: AbstractBattle, type_name: str) -> bool:
         o = self._opp(battle)
@@ -171,7 +225,7 @@ class CustomAgent(Player):
         o = self._opp(battle)
         if o and getattr(o, "boosts", None) and any(v > 0 for v in o.boosts.values()):
             return True
-        return False  # presence alone doesn't force pivots
+        return False
 
     def _bench_has(self, battle: AbstractBattle, name: str):
         for p in (battle.available_switches or []):
@@ -187,14 +241,6 @@ class CustomAgent(Player):
 
     def _preferred_switch(self, battle: AbstractBattle):
         tag = self._opp_tag(battle)
-        if tag == "eternatus":
-            o = self._opp(battle)
-            boosted = bool(o and getattr(o, "boosts", None) and o.boosts.get("spa", 0) > 0)
-            order = ["clodsire", "giratina", "arceusfairy"] + ([] if boosted else ["eternatus"])
-            for cand in order:
-                sw = self._bench_has(battle, cand)
-                if sw and self._hp(sw) >= 0.4:
-                    return sw
         table = self.THREAT_SWITCH.get(tag)
         if table:
             for cand in table:
@@ -266,7 +312,6 @@ class CustomAgent(Player):
         chip += min(0.25, 0.125 * spikes_layers)
         return chip
 
-    # --- switch damping: only switch if real gain exceeds hazard cost
     def _switch_gain(self, battle: AbstractBattle, candidate) -> float:
         me, opp = self._me(battle), self._opp(battle)
         if not me or not opp or not candidate:
@@ -292,6 +337,7 @@ class CustomAgent(Player):
 
         return max(cands, key=ms)
 
+    # ------------ policy ------------
     def choose_move(self, battle: AbstractBattle):
         me, opp = self._me(battle), self._opp(battle)
 
@@ -340,7 +386,7 @@ class CustomAgent(Player):
         if not me or not opp:
             return self.choose_random_move(battle)
 
-        oname = self._opp_name(battle)      # lower + no hyphen per your setup
+        oname = self._opp_name(battle)      # already lower + no hyphen per your setup
         me_name = (me.species or "")
         tag = self._opp_tag(battle)
 
@@ -348,14 +394,13 @@ class CustomAgent(Player):
         opp_boosts = getattr(opp, "boosts", {}) or {}
         opp_boosted = any(v > 0 for v in opp_boosts.values())
 
-        # --- SLP policy: always click Sleep Talk; never Rest while sleeping ---
+        # --- SLP policy
         if getattr(me, "status", None) == "SLP":
             st = can_use("sleeptalk")
             if st:
                 return self.create_order(st)
 
-        # --- High-urgency utilities BEFORE KO-tunnel ---
-        #  A) Immediate anti-boost tools (DT/Haze) fired early
+        # --- anti-boost utilities before KO tunnel
         if opp_boosted:
             if ("giratina" in me_name or "eternatus" in me_name):
                 dt = safe_dt()
@@ -366,69 +411,69 @@ class CustomAgent(Player):
                 if hz:
                     return self.create_order(hz)
 
-        #  B) Giratina Defog has priority once hazards are on our side
+        # --- hazard control on Gira
         if "giratina" in me_name and self._has_hazards_self(battle):
             df = can_use("defog")
             if df and self._hp(me) >= 0.30:
                 return self.create_order(df)
 
-        #  C) Eternatus must not take Zacian/Koraidon — pivot with low threshold
+        # --- Eternatus shouldn't stare down Zacian/Koraidon
         if "eternatus" in me_name and tag in {"zaciancrowned", "koraidon"}:
-            if tag == "zaciancrowned":
-                mv = try_switch(("dondozo", "hooh", "giratina"), base_th=-0.05)
-                if mv: return mv
-            else:  # koraidon
-                mv = try_switch(("arceusfairy", "hooh", "dondozo"), base_th=-0.05)
-                if mv: return mv
+            mv = try_switch(self.THREAT_SWITCH.get(tag, ()), base_th=-0.05)
+            if mv:
+                return mv
 
-        # Secure-KO (after utilities so we don't DT into Fairy etc.)
+        # Secure-KO bias
         atk = self._best_attack(battle)
         if atk and self._hp(opp) <= self.SECURE_KO_HP:
             return self.create_order(atk)
 
-        # ---------------- Threat table (12) ----------------
+        # ---------------- Threat table (12 + new top 14) ----------------
         THREATS = {
-            # Ubers
+            # original 12
             "deoxysspeed":   ("giratina", "eternatus"),
-            "kingambit":     ("giratina", "dondozo", "arceusfairy"),
-            "zaciancrowned": ("dondozo", "hooh", "giratina"),
-            "arceusfairy":   ("clodsire", "hooh", "giratina"),
-            "eternatus":     ("clodsire", "giratina", "eternatus"),
-            "koraidon":      ("arceusfairy", "hooh", "dondozo"),
-            # OU six
-            "tornadustherian": ("hooh", "eternatus", "arceusfairy"),
-            "rotomwash":       ("clodsire", "eternatus", "arceusfairy"),
-            "metagross":       ("hooh", "dondozo", "giratina"),
-            "cobalion":        ("hooh", "giratina", "dondozo"),
-            "zarudedada":      ("hooh", "dondozo", "arceusfairy"),
-            "zarude":          ("hooh", "dondozo", "arceusfairy"),
-            "clodsire":        ("arceusfairy", "hooh", "giratina"),
+            "kingambit":     ("giratina", "dondozo"),
+            "zaciancrowned": ("dondozo", "hooh"),
+            "arceusfairy":   ("clodsire", "hooh"),
+            "eternatus":     ("clodsire", "giratina"),
+            "koraidon":      ("arceusfairy", "hooh"),
+            "tornadustherian": ("hooh", "eternatus"),
+            "rotomwash":       ("clodsire", "eternatus"),
+            "metagross":       ("hooh", "dondozo"),
+            "cobalion":        ("hooh", "giratina"),
+            "zarudedada":      ("hooh", "dondozo"),
+            "zarude":          ("hooh", "dondozo"),
+            "clodsire":        ("arceusfairy", "hooh"),
+
+            # strongest 14 (excluding your bot's 6): add to pivot+micro
+            "kyogre": ("eternatus", "arceusfairy"),
+            "groudon": ("hooh", "dondozo"),
+            "rayquaza": ("dondozo", "hooh"),
+            "dialgaorigin": ("clodsire", "eternatus"),
+            "palkiaorigin": ("eternatus", "arceusfairy"),
+            "necrozmaduskmane": ("hooh", "giratina"),
+            "lunala": ("eternatus", "hooh"),
+            "giratinaorigin": ("arceusfairy", "eternatus"),
+            "hooh": ("eternatus", "dondozo"),
+            "zacian": ("dondozo", "hooh"),
+            "calyrexice": ("dondozo", "hooh"),
+            "fluttermane": ("clodsire", "eternatus"),
+            "roaringmoon": ("dondozo", "hooh"),
+            "magearna": ("hooh", "clodsire"),
         }
 
-        # -------------- Play tightly into the 12 matchups --------------
         order = THREATS.get(tag)
-
         if order:
-            # zacian hazard-aware Dondozo routing (choose Ho-Oh first if Dozo entry is unsafe)
-            if tag == "zaciancrowned" and all(top not in me_name for top in order[:2]):
-                d = self._bench_has(battle, "dondozo")
-                if d:
-                    post = self._hp(d) - self._hazard_chip_estimate(battle, d)
-                    if post < 0.65:
-                        mv = try_switch(("hooh", "dondozo", "giratina"), base_th=-0.05)
-                        if mv: return mv
-
-            # If we’re not already on one of the top two answers, pivot (lower th for Zac/Kora)
+            # if we’re not already on a top answer, pivot quickly (lower bar for the truly scary)
+            base = -0.02 if tag in {"kyogre", "groudon", "rayquaza", "zacian", "zaciancrowned",
+                                    "necrozmaduskmane", "roaringmoon"} else 0.12
             if all(top not in me_name for top in order[:2]):
-                base = -0.05 if tag in {"zaciancrowned", "koraidon"} else 0.16
                 mv = try_switch(order, base_th=base)
                 if mv:
                     return mv
 
-            # We’re on (or stuck into) our check: run set-aware micro
-            # ===== UBERS =====
+            # ===== micro (original 12 kept) =====
             if tag == "deoxysspeed":
-                # If hazards are up, Defog first; else DT to stop stacking
                 if "giratina" in me_name:
                     if self._has_hazards_self(battle):
                         df = can_use("defog")
@@ -438,7 +483,7 @@ class CustomAgent(Player):
                 if "eternatus" in me_name:
                     dt = safe_dt()
                     if dt: return self.create_order(dt)
-                mv = try_switch(("giratina",), base_th=0.12)
+                mv = try_switch(("giratina",), base_th=0.10)
                 if mv: return mv
 
             elif tag == "kingambit":
@@ -449,7 +494,6 @@ class CustomAgent(Player):
                     dt = safe_dt()
                     if dt: return self.create_order(dt)
                 if "dondozo" in me_name:
-                    # Prefer non-damaging into Sucker Punch when healthy
                     if opp_has_move("suckerpunch"):
                         cr = can_use("curse")
                         if cr and self._hp(me) > 0.50 and getattr(me, "status", None) != "SLP":
@@ -462,16 +506,6 @@ class CustomAgent(Player):
                 if "arceusfairy" in me_name:
                     ep = can_use("earthpower")
                     if ep: return self.create_order(ep)
-                # If Dozo is already <65, allow free pivot to Giratina
-                if "giratina" not in me_name:
-                    dozo = self._bench_has(battle, "dondozo")
-                    if dozo and self._hp(dozo) < 0.65:
-                        mv = try_switch(("giratina",), base_th=0.00)
-                        if mv: return mv
-                if "eternatus" in me_name:
-                    ft = can_use("flamethrower")
-                    if ft and self._hp(me) >= 0.72:
-                        return self.create_order(ft)
 
             elif tag == "zaciancrowned":
                 wc_seen = opp_has_move("wildcharge")
@@ -479,14 +513,9 @@ class CustomAgent(Player):
                     sf_or_bb = can_use("sacredfire") or can_use("bravebird")
                     if sf_or_bb: return self.create_order(sf_or_bb)
                     if wc_seen:
-                        mv = try_switch(("dondozo", "arceusfairy"), base_th=0.10)
+                        mv = try_switch(("dondozo", "arceusfairy"), base_th=0.08)
                         if mv: return mv
                 if "dondozo" in me_name:
-                    if wc_seen:
-                        af = self._bench_has(battle, "arceusfairy")
-                        if af and self._hp(af) >= 0.62:
-                            mv = try_switch(("arceusfairy",), base_th=0.05)
-                            if mv: return mv
                     r = can_use("rest")
                     if r and getattr(me, "status", None) != "SLP" and self._hp(me) <= 0.70:
                         return self.create_order(r)
@@ -501,27 +530,23 @@ class CustomAgent(Player):
                 if "clodsire" in me_name:
                     if not taunt_seen:
                         hz = can_use("haze")
-                        if hz and opp_boosted:
-                            return self.create_order(hz)
+                        if hz and opp_boosted: return self.create_order(hz)
                     eq = can_use("earthquake")
                     if eq: return self.create_order(eq)
                     rec = can_use("recover")
-                    if rec and self._hp(me) <= 0.55:
-                        return self.create_order(rec)
+                    if rec and self._hp(me) <= 0.55: return self.create_order(rec)
                 if "giratina" in me_name:
                     mv = try_switch(("hooh", "clodsire"), base_th=0.10)
                     if mv: return mv
                 if "hooh" in me_name:
                     rec = can_use("recover")
-                    if rec and self._hp(me) <= 0.52:
-                        return self.create_order(rec)
+                    if rec and self._hp(me) <= 0.52: return self.create_order(rec)
                     bb = can_use("bravebird")
                     if bb: return self.create_order(bb)
                     sf = can_use("sacredfire")
                     if sf: return self.create_order(sf)
 
             elif tag == "eternatus":
-                beam_core = opp_has_move("meteorbeam") or opp_has_move("agility")
                 if "clodsire" in me_name:
                     if opp_boosted:
                         hz = can_use("haze")
@@ -529,18 +554,10 @@ class CustomAgent(Player):
                     eq = can_use("earthquake")
                     if eq: return self.create_order(eq)
                     rec = can_use("recover")
-                    if rec and self._hp(me) <= 0.58:
-                        return self.create_order(rec)
+                    if rec and self._hp(me) <= 0.58: return self.create_order(rec)
                 if "giratina" in me_name or "eternatus" in me_name:
                     dt = safe_dt()
                     if dt: return self.create_order(dt)
-                if beam_core:
-                    mv = try_switch(("clodsire",), base_th=0.05)
-                    if mv: return mv
-                    cl = self._bench_has(battle, "clodsire")
-                    if (not cl) or self._hp(cl) < 0.35:
-                        mv = try_switch(("arceusfairy",), base_th=0.08)
-                        if mv: return mv
 
             elif tag == "koraidon":
                 fc_seen = opp_has_move("flamecharge")
@@ -561,73 +578,180 @@ class CustomAgent(Player):
                     mv = try_switch(("arceusfairy",), base_th=0.08 if fc_seen else 0.12)
                     if mv: return mv
 
-            # ===== OU SIX =====
-            elif tag == "tornadustherian":
+            # ======= new top-14 micro =======
+            elif tag == "kyogre":
+                # Calm Mind / Water Spout / Thunder / Ice Beam variants
                 if "eternatus" in me_name:
                     if opp_boosted:
                         dt = safe_dt()
                         if dt: return self.create_order(dt)
+                    rec = can_use("recover")
+                    if rec and self._hp(me) <= 0.60: return self.create_order(rec)
+                    ft = can_use("flamethrower")
+                    if ft: return self.create_order(ft)
+                if "arceusfairy" in me_name:
+                    rec = can_use("recover")
+                    if rec and self._hp(me) <= 0.55: return self.create_order(rec)
+                    jd = can_use("judgment")
+                    if jd: return self.create_order(jd)
+
+            elif tag == "groudon":
+                if "hooh" in me_name:
+                    sf = can_use("sacredfire")
+                    if sf: return self.create_order(sf)
+                    ww = can_use("whirlwind")
+                    if ww and opp_boosted: return self.create_order(ww)
+                if "dondozo" in me_name:
+                    r = can_use("rest")
+                    if r and self._hp(me) <= 0.72: return self.create_order(r)
+                    liq = can_use("liquidation")
+                    if liq: return self.create_order(liq)
+                if "giratina" in me_name:
+                    dt = safe_dt()
+                    if dt: return self.create_order(dt)
+
+            elif tag == "rayquaza":
+                if "dondozo" in me_name:
+                    r = can_use("rest")
+                    if r and self._hp(me) <= 0.70: return self.create_order(r)
+                    liq = can_use("liquidation")
+                    if liq: return self.create_order(liq)
+                if "giratina" in me_name:
+                    w = can_use("willowisp")
+                    if w: return self.create_order(w)
+                    dt = safe_dt()
+                    if dt: return self.create_order(dt)
+                if "hooh" in me_name:
+                    sf = can_use("sacredfire")
+                    if sf: return self.create_order(sf)
+
+            elif tag == "dialgaorigin":
+                if "clodsire" in me_name:
+                    eq = can_use("earthquake")
+                    if eq: return self.create_order(eq)
+                    rec = can_use("recover")
+                    if rec and self._hp(me) <= 0.60: return self.create_order(rec)
+                if "eternatus" in me_name:
+                    dt = safe_dt()
+                    if dt: return self.create_order(dt)
+
+            elif tag == "palkiaorigin":
+                if "eternatus" in me_name:
+                    if opp_boosted:
+                        dt = safe_dt()
+                        if dt: return self.create_order(dt)
+                    rec = can_use("recover")
+                    if rec and self._hp(me) <= 0.58: return self.create_order(rec)
+                    ft = can_use("flamethrower")
+                    if ft: return self.create_order(ft)
+                if "arceusfairy" in me_name:
+                    jd = can_use("judgment")
+                    if jd: return self.create_order(jd)
+
+            elif tag == "necrozmaduskmane":
+                if "hooh" in me_name:
+                    sf = can_use("sacredfire")
+                    if sf: return self.create_order(sf)
+                    ww = can_use("whirlwind")
+                    if ww and opp_boosted: return self.create_order(ww)
+                if "giratina" in me_name:
+                    w = can_use("willowisp")
+                    if w: return self.create_order(w)
+                    dt = safe_dt()
+                    if dt: return self.create_order(dt)
+
+            elif tag == "lunala":
+                if "eternatus" in me_name:
+                    dt = safe_dt()
+                    if dt: return self.create_order(dt)
                     ft = can_use("flamethrower")
                     if ft: return self.create_order(ft)
                 if "hooh" in me_name:
                     sf = can_use("sacredfire")
                     if sf: return self.create_order(sf)
 
-            elif tag == "rotomwash":
-                # Never EQ into Levitate; Spikes -> Recover -> soft pivot
-                if "clodsire" in me_name:
-                    s = can_use("spikes")
-                    if s and not self._has_hazards_opp(battle):
-                        return self.create_order(s)
-                    rec = can_use("recover")
-                    if rec and self._hp(me) <= 0.56:
-                        return self.create_order(rec)
-                    mv = try_switch(("eternatus", "arceusfairy"), base_th=0.04)
-                    if mv: return mv
-
-            elif tag == "metagross":
-                if "hooh" in me_name:
-                    sf = can_use("sacredfire")
-                    if sf: return self.create_order(sf)
-                if "dondozo" in me_name:
-                    r = can_use("rest")
-                    if r and getattr(me, "status", None) != "SLP" and self._hp(me) <= 0.72:
-                        return self.create_order(r)
-                    liq = can_use("liquidation")
-                    if liq: return self.create_order(liq)
-                if "giratina" in me_name:
-                    w = can_use("willowisp")
-                    if w: return self.create_order(w)
-
-            elif tag == "cobalion":
-                if "hooh" in me_name:
-                    sf = can_use("sacredfire")
-                    if sf: return self.create_order(sf)
-                if "giratina" in me_name:
-                    w = can_use("willowisp")
-                    if w: return self.create_order(w)
-
-            elif tag in ("zarudedada", "zarude"):
-                if "hooh" in me_name:
-                    sf = can_use("sacredfire")
-                    if sf: return self.create_order(sf)
-                if "dondozo" in me_name:
-                    r = can_use("rest")
-                    if r and getattr(me, "status", None) != "SLP" and self._hp(me) <= 0.70:
-                        return self.create_order(r)
-                    liq = can_use("liquidation")
-                    if liq: return self.create_order(liq)
+            elif tag == "giratinaorigin":
                 if "arceusfairy" in me_name:
                     jd = can_use("judgment")
                     if jd: return self.create_order(jd)
+                    rec = can_use("recover")
+                    if rec and self._hp(me) <= 0.62: return self.create_order(rec)
+                if "eternatus" in me_name:
+                    dt = safe_dt()
+                    if dt: return self.create_order(dt)
 
-            elif tag == "clodsire":
-                if "arceusfairy" in me_name:
-                    ep = can_use("earthpower")
-                    if ep: return self.create_order(ep)
+            elif tag == "hooh":
+                if "eternatus" in me_name:
+                    dt = safe_dt()
+                    if dt and self._has_hazards_opp(battle): return self.create_order(dt)
+                    ft = can_use("flamethrower")
+                    if ft: return self.create_order(ft)
+                if "dondozo" in me_name:
+                    liq = can_use("liquidation")
+                    if liq: return self.create_order(liq)
+                    r = can_use("rest")
+                    if r and self._hp(me) <= 0.68: return self.create_order(r)
+
+            elif tag == "zacian":
+                if "hooh" in me_name:
+                    sf_or_bb = can_use("sacredfire") or can_use("bravebird")
+                    if sf_or_bb: return self.create_order(sf_or_bb)
+                if "dondozo" in me_name:
+                    r = can_use("rest")
+                    if r and self._hp(me) <= 0.70: return self.create_order(r)
+                    liq = can_use("liquidation")
+                    if liq: return self.create_order(liq)
+
+            elif tag == "calyrexice":
+                if "dondozo" in me_name:
+                    r = can_use("rest")
+                    if r and self._hp(me) <= 0.72: return self.create_order(r)
+                    liq = can_use("liquidation")
+                    if liq: return self.create_order(liq)
+                if "hooh" in me_name:
+                    sf = can_use("sacredfire")
+                    if sf: return self.create_order(sf)
+                if "giratina" in me_name:
+                    w = can_use("willowisp")
+                    if w: return self.create_order(w)
+                    dt = safe_dt()
+                    if dt: return self.create_order(dt)
+
+            elif tag == "fluttermane":
+                if "clodsire" in me_name:
+                    if opp_boosted:
+                        hz = can_use("haze")
+                        if hz: return self.create_order(hz)
+                    eq = can_use("earthquake")
+                    if eq: return self.create_order(eq)
+                    rec = can_use("recover")
+                    if rec and self._hp(me) <= 0.58: return self.create_order(rec)
+                if "eternatus" in me_name:
+                    ft = can_use("flamethrower")
+                    if ft: return self.create_order(ft)
+
+            elif tag == "roaringmoon":
+                if "dondozo" in me_name:
+                    r = can_use("rest")
+                    if r and self._hp(me) <= 0.70: return self.create_order(r)
+                    liq = can_use("liquidation")
+                    if liq: return self.create_order(liq)
+                if "hooh" in me_name:
+                    sf = can_use("sacredfire")
+                    if sf: return self.create_order(sf)
+
+            elif tag == "magearna":
+                if "hooh" in me_name:
+                    sf = can_use("sacredfire")
+                    if sf: return self.create_order(sf)
+                    ww = can_use("whirlwind")
+                    if ww and opp_boosted: return self.create_order(ww)
+                if "clodsire" in me_name:
+                    eq = can_use("earthquake")
+                    if eq: return self.create_order(eq)
 
         # ---------------- generic rails (kept light) ----------------
-        # Eternatus generic (safe pattern)
+        # Eternatus generic
         if "eternatus" in me_name:
             if opp_boosted:
                 dt = safe_dt()
