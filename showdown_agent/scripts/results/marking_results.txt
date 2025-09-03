@@ -1,1 +1,1 @@
-aros181_simple #1 10.0
+aros181_counter #1 10.0

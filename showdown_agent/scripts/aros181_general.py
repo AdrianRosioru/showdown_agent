@@ -86,34 +86,40 @@ DAMAGE_TIE_EPS      = 0.03      # tie-breaker epsilon for move choice
 # =========================================================
 class Core:
     TYPE_CHART: Dict[str, Dict[str, float]] = {
-        "Normal":  {"Rock": 0.5, "Ghost": 0.0, "Steel": 0.5},
-        "Fire":    {"Grass": 2, "Ice": 2, "Bug": 2, "Steel": 2, "Fire": 0.5, "Water": 0.5, "Rock": 0.5, "Dragon": 0.5},
-        "Water":   {"Fire": 2, "Ground": 2, "Rock": 2, "Water": 0.5, "Grass": 0.5, "Dragon": 0.5},
-        "Electric":{"Water": 2, "Flying": 2, "Electric": 0.5, "Grass": 0.5, "Dragon": 0.5, "Ground": 0.0},
-        "Grass":   {"Water": 2, "Ground": 2, "Rock": 2, "Fire": 0.5, "Grass": 0.5, "Poison": 0.5, "Flying": 0.5, "Bug": 0.5, "Dragon": 0.5, "Steel": 0.5},
-        "Ice":     {"Grass": 2, "Ground": 2, "Flying": 2, "Dragon": 2, "Fire": 0.5, "Water": 0.5, "Ice": 0.5, "Steel": 0.5},
-        "Fighting":{"Normal": 2, "Ice": 2, "Rock": 2, "Dark": 2, "Steel": 2, "Poison": 0.5, "Flying": 0.5, "Psychic": 0.5, "Bug": 0.5, "Fairy": 0.5, "Ghost": 0.0},
-        "Poison":  {"Grass": 2, "Fairy": 2, "Poison": 0.5, "Ground": 0.5, "Rock": 0.5, "Ghost": 0.5, "Steel": 0.0},
-        "Ground":  {"Fire": 2, "Electric": 2, "Poison": 2, "Rock": 2, "Steel": 2, "Grass": 0.5, "Bug": 0.5, "Flying": 0.0},
-        "Flying":  {"Grass": 2, "Fighting": 2, "Bug": 2, "Electric": 0.5, "Rock": 0.5, "Steel": 0.5},
-        "Psychic": {"Fighting": 2, "Poison": 2, "Psychic": 0.5, "Steel": 0.5, "Dark": 0.0},
-        "Bug":     {"Grass": 2, "Psychic": 2, "Dark": 2, "Fire": 0.5, "Fighting": 0.5, "Poison": 0.5, "Flying": 0.5, "Ghost": 0.5, "Steel": 0.5, "Fairy": 0.5},
-        "Rock":    {"Fire": 2, "Ice": 2, "Flying": 2, "Bug": 2, "Fighting": 0.5, "Ground": 0.5, "Steel": 0.5},
-        "Ghost":   {"Psychic": 2, "Ghost": 2, "Dark": 0.5, "Normal": 0.0},
-        "Dragon":  {"Dragon": 2, "Steel": 0.5, "Fairy": 0.0},
-        "Dark":    {"Psychic": 2, "Ghost": 2, "Fighting": 0.5, "Dark": 0.5, "Fairy": 0.5},
-        "Steel":   {"Ice": 2, "Rock": 2, "Fairy": 2, "Fire": 0.5, "Water": 0.5, "Electric": 0.5, "Steel": 0.5},
-        "Fairy":   {"Fighting": 2, "Dragon": 2, "Dark": 2, "Fire": 0.5, "Poison": 0.5, "Steel": 0.5},
+        "normal":  {"rock": 0.5, "ghost": 0.0, "steel": 0.5},
+        "fire":    {"grass": 2, "ice": 2, "bug": 2, "steel": 2, "fire": 0.5, "water": 0.5, "rock": 0.5, "dragon": 0.5},
+        "water":   {"fire": 2, "ground": 2, "rock": 2, "water": 0.5, "grass": 0.5, "dragon": 0.5},
+        "electric":{"water": 2, "flying": 2, "electric": 0.5, "grass": 0.5, "dragon": 0.5, "ground": 0.0},
+        "grass":   {"water": 2, "ground": 2, "rock": 2, "fire": 0.5, "grass": 0.5, "poison": 0.5, "flying": 0.5, "bug": 0.5, "dragon": 0.5, "steel": 0.5},
+        "ice":     {"grass": 2, "ground": 2, "flying": 2, "dragon": 2, "fire": 0.5, "water": 0.5, "ice": 0.5, "steel": 0.5},
+        "fighting":{"normal": 2, "ice": 2, "rock": 2, "dark": 2, "steel": 2, "poison": 0.5, "flying": 0.5, "psychic": 0.5, "bug": 0.5, "fairy": 0.5, "ghost": 0.0},
+        "poison":  {"grass": 2, "fairy": 2, "poison": 0.5, "ground": 0.5, "rock": 0.5, "ghost": 0.5, "steel": 0.0},
+        "ground":  {"fire": 2, "electric": 2, "poison": 2, "rock": 2, "steel": 2, "grass": 0.5, "bug": 0.5, "flying": 0.0},
+        "flying":  {"grass": 2, "fighting": 2, "bug": 2, "electric": 0.5, "rock": 0.5, "steel": 0.5},
+        "psychic": {"fighting": 2, "poison": 2, "psychic": 0.5, "steel": 0.5, "dark": 0.0},
+        "bug":     {"grass": 2, "psychic": 2, "dark": 2, "fire": 0.5, "fighting": 0.5, "poison": 0.5, "flying": 0.5, "ghost": 0.5, "steel": 0.5, "fairy": 0.5},
+        "rock":    {"fire": 2, "ice": 2, "flying": 2, "bug": 2, "fighting": 0.5, "ground": 0.5, "steel": 0.5},
+        "ghost":   {"psychic": 2, "ghost": 2, "dark": 0.5, "normal": 0.0},
+        "dragon":  {"dragon": 2, "steel": 0.5, "fairy": 0.0},
+        "dark":    {"psychic": 2, "ghost": 2, "fighting": 0.5, "dark": 0.5, "fairy": 0.5},
+        "steel":   {"ice": 2, "rock": 2, "fairy": 2, "fire": 0.5, "water": 0.5, "electric": 0.5, "steel": 0.5},
+        "fairy":   {"fighting": 2, "dragon": 2, "dark": 2, "fire": 0.5, "poison": 0.5, "steel": 0.5},
     }
     EFF_POINTS = {0.0: 3.0, 0.25: 2.0, 0.5: 1.0, 1.0: 0.0, 2.0: -1.0, 4.0: -2.0}
-    TYPES_ORDER = ["Normal","Fire","Water","Electric","Grass","Ice","Fighting","Poison","Ground","Flying",
-                   "Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"]
+    TYPES_ORDER = ["normal","fire","water","electric","grass","ice","fighting","poison","ground","flying",
+                   "psychic","bug","rock","ghost","dragon","dark","steel","fairy"]
+
+    # --------- normalization helpers ----------
+    @staticmethod
+    def _norm_name(s: Optional[str]) -> str:
+        return (str(s or "")).lower().replace("-", "")
 
     @staticmethod
     def types(mon) -> List[str]:
         out = []
         for t in (getattr(mon, "types", None) or []):
-            if t: out.append(getattr(t, "name", str(t)))
+            if t:
+                out.append(Core._norm_name(getattr(t, "name", str(t))))
         return out
 
     @staticmethod
@@ -130,11 +136,11 @@ class Core:
 
     @staticmethod
     def ability(mon) -> str:
-        return str(getattr(mon, "ability", "") or "").lower()
+        return Core._norm_name(getattr(mon, "ability", "") or "")
 
     @staticmethod
     def item(mon) -> str:
-        return str(getattr(mon, "item", "") or "").lower()
+        return (str(getattr(mon, "item", "") or "")).lower()
 
     @staticmethod
     def hp(mon) -> float:
@@ -160,7 +166,7 @@ class Core:
 
     @staticmethod
     def has_ground_immunity(mon) -> bool:
-        return ("Flying" in Core.types(mon)) or (Core.ability(mon) == "levitate")
+        return ("flying" in Core.types(mon)) or (Core.ability(mon) == "levitate")
 
     @staticmethod
     def grounded(mon) -> bool:
@@ -173,8 +179,8 @@ class Core:
     @staticmethod
     def type_eff(atk_type: Optional[str], def_types: List[str], defender=None) -> float:
         if not atk_type: return 1.0
-        atk_type = getattr(atk_type, "name", atk_type)
-        if atk_type == "Ground" and defender is not None and Core.has_ground_immunity(defender):
+        atk_type = Core._norm_name(getattr(atk_type, "name", atk_type))
+        if atk_type == "ground" and defender is not None and Core.has_ground_immunity(defender):
             return 0.0
         mult = 1.0
         chart = Core.TYPE_CHART.get(atk_type, {})
@@ -191,7 +197,7 @@ class Core:
         atk_is_phys = Core.is_physical(move)
         atk_stat = Core.stat(attacker, "atk" if atk_is_phys else "spa")
         def_stat = Core.stat(defender, "def" if atk_is_phys else "spd")
-        mtype = getattr(move, "type", None); mtype = getattr(mtype, "name", mtype)
+        mtype = getattr(move, "type", None); mtype = Core._norm_name(getattr(mtype, "name", mtype))
         eff = Core.type_eff(mtype, Core.types(defender), defender=defender)
         if eff <= 0.0: return 0.0
         stab = 1.5 if (mtype and mtype in Core.types(attacker)) else 1.0
@@ -212,6 +218,7 @@ class Core:
         lane = Core._predict_lane(attacker)
         atk_stat = Core.stat(attacker, "atk" if lane == "phys" else "spa")
         def_stat = Core.stat(defender, "def" if lane == "phys" else "spd")
+        atk_type = Core._norm_name(atk_type)
         eff = Core.type_eff(atk_type, Core.types(defender), defender=defender)
         if eff == 0.0: return 0.0
         stab = 1.5 if atk_type in Core.types(attacker) else 1.0
@@ -223,6 +230,7 @@ class Core:
     def estimate_bp_type_damage_fraction(attacker, defender, move_type: str, bp: float, category: str) -> float:
         if not attacker or not defender or not move_type or bp <= 0:
             return 0.0
+        move_type = Core._norm_name(move_type)
         use_phys = (category == "phys")
         atk_stat = Core.stat(attacker, "atk" if use_phys else "spa")
         def_stat = Core.stat(defender, "def" if use_phys else "spd")
@@ -251,7 +259,7 @@ class Core:
         sc = battle.side_conditions or {}
         frac = 0.0
         if sc.get(SideCondition.STEALTH_ROCK, 0):
-            mult = Core.type_eff("Rock", Core.types(cand), defender=cand)
+            mult = Core.type_eff("rock", Core.types(cand), defender=cand)
             frac += 0.125 * mult
         if Core.grounded(cand):
             layers = int(sc.get(SideCondition.SPIKES, 0) or 0)
@@ -268,31 +276,31 @@ class Core:
             return {"poison": False, "toxic": False, "absorb": False}
         grounded = Core.grounded(cand)
         types = set(Core.types(cand))
-        if Core.has_boots(cand) or not grounded or "Steel" in types:
+        if Core.has_boots(cand) or not grounded or "steel" in types:
             return {"poison": False, "toxic": False, "absorb": False}
-        if "Poison" in types:
+        if "poison" in types:
             return {"poison": False, "toxic": False, "absorb": True}
         return {"poison": layers == 1, "toxic": layers >= 2, "absorb": False}
 
 # ===== Known movekits for YOUR team (used before moves are revealed) =====
 TEAM_KNOWN_MOVES: Dict[str, List[Tuple[str,int,str]]] = {
-    "clodsire":        [("Ground", 100, "phys")],
-    "giratina-origin": [("Ghost", 110, "phys"), ("Dragon", 60, "phys")],
-    "ho-oh":           [("Fire", 100, "phys"), ("Flying", 120, "phys")],
-    "dondozo":         [("Water", 85, "phys")],
-    "arceus-fairy":    [("Fairy", 100, "spec"), ("Ground", 90, "spec")],
-    "eternatus":       [("Fire", 90, "spec"), ("Dragon", 60, "phys")],
+    "clodsire":        [("ground", 100, "phys")],
+    "giratinaorigin":  [("ghost", 110, "phys"), ("dragon", 60, "phys")],
+    "hooh":            [("fire", 100, "phys"), ("flying", 120, "phys")],
+    "dondozo":         [("water", 85, "phys")],
+    "arceusfairy":     [("fairy", 100, "spec"), ("ground", 90, "spec")],
+    "eternatus":       [("fire", 90, "spec"), ("dragon", 60, "phys")],
 }
 USER_TYPES = {
-    "clodsire": {"Ground","Poison"},
-    "giratina-origin": {"Ghost","Dragon"},
-    "ho-oh": {"Fire","Flying"},
-    "dondozo": {"Water"},
-    "arceus-fairy": {"Fairy"},
-    "eternatus": {"Poison","Dragon"},
+    "clodsire": {"ground","poison"},
+    "giratinaorigin": {"ghost","dragon"},
+    "hooh": {"fire","flying"},
+    "dondozo": {"water"},
+    "arceusfairy": {"fairy"},
+    "eternatus": {"poison","dragon"},
 }
 def _species_key(p) -> str:
-    return (getattr(p, "species", "") or "").lower()
+    return (getattr(p, "species", "") or "").lower().replace("-", "")
 
 # =========================================================
 #                Counter-aware Agent (switch+heal safe)
@@ -315,7 +323,7 @@ class CustomAgent(Player, Core):
         seen = []
         for mv in (getattr(opp, "moves", {}) or {}).values():
             if Core.is_damaging(mv):
-                t = getattr(mv, "type", None); t = getattr(t, "name", t)
+                t = getattr(mv, "type", None); t = Core._norm_name(getattr(t, "name", t))
                 if t and t not in seen:
                     seen.append(t)
         return seen or Core.types(opp)
@@ -373,7 +381,7 @@ class CustomAgent(Player, Core):
         has_dt   = any(getattr(mv, "id", "") == "dragontail" for mv in (getattr(cand, "moves", {}) or {}).values())
         if boosted and (has_haze or has_ww or has_dt):
             bonus += 0.2
-        if "Poison" in Core.types(cand) and ("Fairy" in self._opp_attacking_types(opp)):
+        if "poison" in Core.types(cand) and ("fairy" in self._opp_attacking_types(opp)):
             bonus += 0.1
         return bonus
 
@@ -434,7 +442,7 @@ class CustomAgent(Player, Core):
             d = Core.estimate_damage_fraction(me, opp, mv)
             if d >= Core.hp(opp): d += 0.40  # KO nudge
             # tie-break: prefer higher type multiplier when close in damage
-            mtype = getattr(mv, "type", None); mtype = getattr(mtype, "name", mtype)
+            mtype = getattr(mv, "type", None); mtype = Core._norm_name(getattr(mtype, "name", mtype))
             eff = Core.type_eff(mtype, Core.types(opp), defender=opp)
             if d > score + DAMAGE_TIE_EPS or (abs(d - score) <= DAMAGE_TIE_EPS and eff > best_eff):
                 best, score, best_eff = mv, d, eff
@@ -444,7 +452,7 @@ class CustomAgent(Player, Core):
         if getattr(me, "status", "") == "slp":
             st = self._move(battle, "sleeptalk")
             if st: return st
-        if "clodsire" in (getattr(me, "species","") or "").lower():
+        if "clodsire" in (getattr(me, "species","") or "").lower().replace("-", ""):
             if any(v > 0 for v in (getattr(opp, "boosts", {}) or {}).values()):
                 hz = self._move(battle, "haze")
                 if hz: return hz
@@ -454,24 +462,23 @@ class CustomAgent(Player, Core):
                 layers = int(opp_sc.get(SideCondition.SPIKES, 0) or 0)
                 if layers < 3 and Core.hp(me) >= 0.70 and self._worst_expected_hit(me, opp) < 0.25:
                     return sp
-        if "giratina" in (getattr(me, "species","") or "").lower():
+        if "giratina" in (getattr(me, "species","") or "").lower().replace("-", ""):
             if any(v > 0 for v in (getattr(opp, "boosts", {}) or {}).values()):
                 dt = self._move(battle, "dragontail")
                 if dt and self._worst_expected_hit(me, opp) < Core.hp(me) - 0.05:
                     return dt
-        if "ho-oh" in (getattr(me, "species","") or "").lower():
+        if "hooh" in (getattr(me, "species","") or "").lower().replace("-", ""):
             if any(v > 0 for v in (getattr(opp, "boosts", {}) or {}).values()):
                 ww = self._move(battle, "whirlwind")
                 if ww and self._worst_expected_hit(me, opp) < Core.hp(me) - 0.05:
                     return ww
-        if "dondozo" in (getattr(me, "species","") or "").lower():
+        if "dondozo" in (getattr(me, "species","") or "").lower().replace("-", ""):
             rst = self._move(battle, "rest")
             if rst and (Core.hp(me) <= 0.45 or self._worst_expected_hit(me, opp) >= Core.hp(me)):
                 return rst
         return None
 
     def _get_heal_move(self, battle):
-        # include common heals; you can add more like 'synthesis','morningSun','shoreup' if you use them
         for hid in ("recover","roost","slackoff","moonlight","rest"):
             mv = self._move(battle, hid)
             if mv: return mv
@@ -518,10 +525,8 @@ class CustomAgent(Player, Core):
         if heal_mv and my_hp <= HEAL_THRESHOLD:
             heal_gain = 1.0 if heal_mv.id == "rest" else 0.5
             heals_out = (my_hp + heal_gain) > worst_in
-            # Enforce heal under 40%: if we can survive to benefit, do it (even if we could KO)
             if heal_mv.id == "rest" or heals_out:
                 return self.create_order(heal_mv)
-            # If healing won't save us, we'll prefer a safer switch next.
 
         # >>> EARLY SWITCH DECISION <<<
         # Switch before utility/heal if matchup is bad or a bench counter is clearly better.
@@ -549,7 +554,7 @@ class CustomAgent(Player, Core):
         if util:
             return self.create_order(util)
 
-        # Regular heal if still valuable (keeps you out of 2HKO range, etc.)
+        # Regular heal if still valuable
         if heal_mv:
             heal_gain = 1.0 if heal_mv.id == "rest" else 0.5
             if (my_hp <= HEAL_THRESHOLD) or (worst_in >= my_hp and (my_hp + heal_gain) > worst_in):
@@ -570,16 +575,16 @@ class CustomAgent(Player, Core):
     # ===== Optional: print tables for move effectiveness/power =====
     def dump_move_effectiveness_tables(self):
         moves = [
-            ("Earthquake", "Ground", 100, "phys", "clodsire"),
-            ("Poltergeist", "Ghost", 110, "phys", "giratina-origin"),
-            ("Dragon Tail (Gira-O)", "Dragon", 60, "phys", "giratina-origin"),
-            ("Sacred Fire", "Fire", 100, "phys", "ho-oh"),
-            ("Brave Bird", "Flying", 120, "phys", "ho-oh"),
-            ("Liquidation", "Water", 85, "phys", "dondozo"),
-            ("Judgment (Fairy)", "Fairy", 100, "spec", "arceus-fairy"),
-            ("Earth Power", "Ground", 90, "spec", "arceus-fairy"),
-            ("Flamethrower", "Fire", 90, "spec", "eternatus"),
-            ("Dragon Tail (Eternatus)", "Dragon", 60, "phys", "eternatus"),
+            ("Earthquake", "ground", 100, "phys", "clodsire"),
+            ("Poltergeist", "ghost", 110, "phys", "giratinaorigin"),
+            ("Dragon Tail (Gira-O)", "dragon", 60, "phys", "giratinaorigin"),
+            ("Sacred Fire", "fire", 100, "phys", "hooh"),
+            ("Brave Bird", "flying", 120, "phys", "hooh"),
+            ("Liquidation", "water", 85, "phys", "dondozo"),
+            ("Judgment (Fairy)", "fairy", 100, "spec", "arceusfairy"),
+            ("Earth Power", "ground", 90, "spec", "arceusfairy"),
+            ("Flamethrower", "fire", 90, "spec", "eternatus"),
+            ("Dragon Tail (Eternatus)", "dragon", 60, "phys", "eternatus"),
         ]
 
         def mult_row(move_type: str) -> Dict[str,float]:
