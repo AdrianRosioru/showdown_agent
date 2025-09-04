@@ -75,92 +75,92 @@ class CustomAgent(Player):
     # Switch suggestions for ALL listed Ubers (keys are lowercased, hyphens removed)
     THREAT_SWITCH: Dict[str, Tuple[str, ...]] = {
         # --- your existing core 12 / knowns ---
-        "deoxysspeed":   ("giratina", "eternatus"),
-        "kingambit":     ("giratina", "dondozo", "hooh"),
-        "zaciancrowned": ("dondozo", "hooh", "giratina"),
-        "zacian":        ("dondozo", "hooh", "giratina"),
+        "deoxysspeed":   ("giratinaorigin", "eternatus"),
+        "kingambit":     ("giratinaorigin", "dondozo", "hooh"),
+        "zaciancrowned": ("dondozo", "hooh", "giratinaorigin"),
+        "zacian":        ("dondozo", "hooh", "giratinaorigin"),
         "koraidon":      ("arceusfairy", "hooh", "dondozo"),
-        "eternatus":     ("clodsire", "giratina", "arceusfairy"),
-        "arceusfairy":   ("clodsire", "hooh", "giratina"),
-        "groudon":       ("hooh", "dondozo", "giratina"),
+        "eternatus":     ("clodsire", "giratinaorigin", "arceusfairy"),
+        "arceusfairy":   ("clodsire", "hooh", "giratinaorigin"),
+        "groudon":       ("hooh", "dondozo", "giratinaorigin"),
         # OU6 (kept)
         "tornadustherian": ("hooh", "eternatus", "arceusfairy"),
         "rotomwash":       ("clodsire", "eternatus", "arceusfairy"),
-        "metagross":       ("dondozo", "hooh", "giratina"),
-        "cobalion":        ("hooh", "giratina", "dondozo"),
+        "metagross":       ("dondozo", "hooh", "giratinaorigin"),
+        "cobalion":        ("hooh", "giratinaorigin", "dondozo"),
         "zarudedada":      ("hooh", "dondozo", "arceusfairy"),
         "zarude":          ("hooh", "dondozo", "arceusfairy"),
-        "clodsire":        ("arceusfairy", "hooh", "giratina"),
+        "clodsire":        ("arceusfairy", "hooh", "giratinaorigin"),
 
         # -------- UBERS POOL (newly added) --------
         "annihilape": ("hooh", "dondozo", "arceusfairy"),
-        "arceus": ("giratina", "dondozo", "hooh"),
-        "arceusbug": ("hooh", "giratina", "eternatus"),
+        "arceus": ("giratinaorigin", "dondozo", "hooh"),
+        "arceusbug": ("hooh", "giratinaorigin", "eternatus"),
         "arceusdark": ("arceusfairy", "dondozo", "hooh"),
-        "arceusdragon": ("arceusfairy", "dondozo", "giratina"),
-        "arceuselectric": ("clodsire", "arceusfairy", "giratina"),
-        "arceusfighting": ("giratina", "hooh", "arceusfairy"),
+        "arceusdragon": ("arceusfairy", "dondozo", "giratinaorigin"),
+        "arceuselectric": ("clodsire", "arceusfairy", "giratinaorigin"),
+        "arceusfighting": ("giratinaorigin", "hooh", "arceusfairy"),
         "arceusfire": ("eternatus", "dondozo", "arceusfairy"),
         "arceusflying": ("dondozo", "hooh", "eternatus"),
         "arceusghost": ("arceusfairy", "hooh", "clodsire"),
-        "arceusgrass": ("hooh", "eternatus", "giratina"),
-        "arceusground": ("hooh", "dondozo", "giratina"),
+        "arceusgrass": ("hooh", "eternatus", "giratinaorigin"),
+        "arceusground": ("hooh", "dondozo", "giratinaorigin"),
         "arceusice": ("arceusfairy", "hooh", "dondozo"),
-        "arceuspoison": ("clodsire", "eternatus", "giratina"),
-        "arceuspsychic": ("hooh", "giratina", "arceusfairy"),
-        "arceusrock": ("dondozo", "clodsire", "giratina"),
+        "arceuspoison": ("clodsire", "eternatus", "giratinaorigin"),
+        "arceuspsychic": ("hooh", "giratinaorigin", "arceusfairy"),
+        "arceusrock": ("dondozo", "clodsire", "giratinaorigin"),
         "arceussteel": ("hooh", "clodsire", "eternatus"),
         "arceuswater": ("eternatus", "dondozo", "arceusfairy"),
 
         "archaludon": ("clodsire", "arceusfairy", "hooh"),
         "baxcalibur": ("dondozo", "hooh", "arceusfairy"),
-        "calyrexice": ("dondozo", "hooh", "giratina"),
+        "calyrexice": ("dondozo", "hooh", "giratinaorigin"),
         "chienpao": ("dondozo", "hooh", "arceusfairy"),
         "chiyu": ("eternatus", "hooh", "arceusfairy"),
-        "deoxys": ("giratina", "eternatus", "hooh"),
-        "deoxysattack": ("giratina", "eternatus", "hooh"),
+        "deoxys": ("giratinaorigin", "eternatus", "hooh"),
+        "deoxysattack": ("giratinaorigin", "eternatus", "hooh"),
         "dialga": ("clodsire", "eternatus", "hooh"),
         "dialgaorigin": ("clodsire", "eternatus", "hooh"),
-        "espathra": ("clodsire", "hooh", "giratina"),
+        "espathra": ("clodsire", "hooh", "giratinaorigin"),
         "fluttermane": ("clodsire", "eternatus", "hooh"),
-        "giratina": ("arceusfairy", "eternatus", "hooh"),
+        "giratinaorigin": ("arceusfairy", "eternatus", "hooh"),
         "giratinaorigin": ("arceusfairy", "eternatus", "hooh"),
         "gougingfire": ("dondozo", "hooh", "arceusfairy"),
-        "hooh": ("eternatus", "dondozo", "giratina"),
+        "hooh": ("eternatus", "dondozo", "giratinaorigin"),
         "ironbundle": ("arceusfairy", "hooh", "eternatus"),
         "kyogre": ("eternatus", "arceusfairy", "hooh"),
         "kyuremblack": ("dondozo", "hooh", "arceusfairy"),
         "kyuremwhite": ("arceusfairy", "clodsire", "dondozo"),
         "landorus": ("hooh", "dondozo", "arceusfairy"),
-        "lugia": ("eternatus", "giratina", "arceusfairy"),
+        "lugia": ("eternatus", "giratinaorigin", "arceusfairy"),
         "lunala": ("eternatus", "hooh", "arceusfairy"),
         "magearna": ("hooh", "clodsire", "eternatus"),
         "magearnaoriginal": ("hooh", "clodsire", "eternatus"),
-        "mewtwo": ("hooh", "giratina", "arceusfairy"),
-        "necrozmadawnwings": ("hooh", "arceusfairy", "giratina"),
-        "necrozmaduskmane": ("hooh", "giratina", "dondozo"),
+        "mewtwo": ("hooh", "giratinaorigin", "arceusfairy"),
+        "necrozmadawnwings": ("hooh", "arceusfairy", "giratinaorigin"),
+        "necrozmaduskmane": ("hooh", "giratinaorigin", "dondozo"),
         "ogerponhearthflame": ("hooh", "dondozo", "eternatus"),
         "palafin": ("dondozo", "eternatus", "arceusfairy"),
         "palafinhero": ("dondozo", "eternatus", "arceusfairy"),
         "palkia": ("eternatus", "arceusfairy", "dondozo"),
         "palkiaorigin": ("eternatus", "arceusfairy", "dondozo"),
-        "rayquaza": ("dondozo", "hooh", "giratina"),
-        "regieleki": ("clodsire", "arceusfairy", "giratina"),
+        "rayquaza": ("dondozo", "hooh", "giratinaorigin"),
+        "regieleki": ("clodsire", "arceusfairy", "giratinaorigin"),
         "reshiram": ("arceusfairy", "eternatus", "dondozo"),
         "roaringmoon": ("dondozo", "hooh", "arceusfairy"),
         "shayminsky": ("hooh", "eternatus", "arceusfairy"),
-        "sneasler": ("giratina", "hooh", "dondozo"),
-        "solgaleo": ("hooh", "giratina", "dondozo"),
-        "spectrier": ("clodsire", "hooh", "giratina"),
-        "terapagos": ("clodsire", "giratina", "hooh"),
-        "terapagosstellar": ("clodsire", "giratina", "hooh"),
-        "terapagosterastal": ("clodsire", "giratina", "hooh"),
-        "ursalunabloodmoon": ("giratina", "clodsire", "hooh"),
+        "sneasler": ("giratinaorigin", "hooh", "dondozo"),
+        "solgaleo": ("hooh", "giratinaorigin", "dondozo"),
+        "spectrier": ("clodsire", "hooh", "giratinaorigin"),
+        "terapagos": ("clodsire", "giratinaorigin", "hooh"),
+        "terapagosstellar": ("clodsire", "giratinaorigin", "hooh"),
+        "terapagosterastal": ("clodsire", "giratinaorigin", "hooh"),
+        "ursalunabloodmoon": ("giratinaorigin", "clodsire", "hooh"),
         "urshifu": ("arceusfairy", "dondozo", "hooh"),
-        "urshifurapidstrike": ("arceusfairy", "dondozo", "giratina"),
+        "urshifurapidstrike": ("arceusfairy", "dondozo", "giratinaorigin"),
         "volcarona": ("eternatus", "hooh", "clodsire"),
-        "zamazentacrowned": ("hooh", "giratina", "dondozo"),
-        "zekrom": ("arceusfairy", "giratina", "clodsire"),
+        "zamazentacrowned": ("hooh", "giratinaorigin", "dondozo"),
+        "zekrom": ("arceusfairy", "giratinaorigin", "clodsire"),
     }
 
     HIGH_PRESSURE: Tuple[str, ...] = (
@@ -168,7 +168,7 @@ class CustomAgent(Player):
     )
 
     SWITCH_COOLDOWN_TURNS = 1
-    LEAD_PRIORITY = ["eternatus", "clodsire", "giratina", "dondozo", "arceusfairy", "hooh"]
+    LEAD_PRIORITY = ["eternatus", "clodsire", "giratinaorigin", "dondozo", "arceusfairy", "hooh"]
 
     GENERIC_RECOVER_THRESHOLD = 0.45
     ETERNATUS_CP_MINHP = 0.62
@@ -255,8 +255,10 @@ class CustomAgent(Player):
         moves = battle.available_moves or []
         if not me or not opp or not moves:
             return None
-        if "Giratina" in (me.species or "") and "Kingambit" in (opp.species or ""):
+        if "giratinaorigin" in (me.species or "") and "Kingambit" in (opp.species or ""):
             moves = [m for m in moves if m.id != "poltergeist"] or moves
+        if "giratinaorigin" in (me.species or "") and "deoxysspeed" in (opp.species or ""):
+            return None
         atk_bias = 1.1 if me.stats.get("atk", 0) >= me.stats.get("spa", 0) else 1.0
         spa_bias = 1.1 if me.stats.get("spa", 0) > me.stats.get("atk", 0) else 1.0
 
@@ -402,7 +404,7 @@ class CustomAgent(Player):
 
         # --- anti-boost utilities before KO tunnel
         if opp_boosted:
-            if ("giratina" in me_name or "eternatus" in me_name):
+            if ("giratinaorigin" in me_name or "eternatus" in me_name):
                 dt = safe_dt()
                 if dt:
                     return self.create_order(dt)
@@ -410,12 +412,6 @@ class CustomAgent(Player):
                 hz = can_use("haze")
                 if hz:
                     return self.create_order(hz)
-
-        # --- hazard control on Gira
-        if "giratina" in me_name and self._has_hazards_self(battle):
-            df = can_use("defog")
-            if df and self._hp(me) >= 0.30:
-                return self.create_order(df)
 
         # --- Eternatus shouldn't stare down Zacian/Koraidon
         if "eternatus" in me_name and tag in {"zaciancrowned", "koraidon"}:
@@ -431,16 +427,16 @@ class CustomAgent(Player):
         # ---------------- Threat table (12 + new top 14) ----------------
         THREATS = {
             # original 12
-            "deoxysspeed":   ("giratina", "eternatus"),
-            "kingambit":     ("giratina", "dondozo"),
+            "deoxysspeed":   ("giratinaorigin", "eternatus"),
+            "kingambit":     ("giratinaorigin", "dondozo"),
             "zaciancrowned": ("dondozo", "hooh"),
             "arceusfairy":   ("clodsire", "hooh"),
-            "eternatus":     ("clodsire", "giratina"),
+            "eternatus":     ("clodsire", "eternatus"),
             "koraidon":      ("arceusfairy", "hooh"),
             "tornadustherian": ("hooh", "eternatus"),
             "rotomwash":       ("clodsire", "eternatus"),
             "metagross":       ("hooh", "dondozo"),
-            "cobalion":        ("hooh", "giratina"),
+            "cobalion":        ("hooh", "giratinaorigin"),
             "zarudedada":      ("hooh", "dondozo"),
             "zarude":          ("hooh", "dondozo"),
             "clodsire":        ("arceusfairy", "hooh"),
@@ -451,7 +447,7 @@ class CustomAgent(Player):
             "rayquaza": ("dondozo", "hooh"),
             "dialgaorigin": ("clodsire", "eternatus"),
             "palkiaorigin": ("eternatus", "arceusfairy"),
-            "necrozmaduskmane": ("hooh", "giratina"),
+            "necrozmaduskmane": ("hooh", "giratinaorigin"),
             "lunala": ("eternatus", "hooh"),
             "giratinaorigin": ("arceusfairy", "eternatus"),
             "hooh": ("eternatus", "dondozo"),
@@ -474,32 +470,43 @@ class CustomAgent(Player):
 
             # ===== micro (original 12 kept) =====
             if tag == "deoxysspeed":
-                if "giratina" in me_name:
-                    if self._has_hazards_self(battle):
-                        df = can_use("defog")
-                        if df: return self.create_order(df)
+                if "giratinaorigin" in me_name:
+                    if self._hp(opp) < 0.20:
+                        dt = can_use("dragontail")
+                        return self.create_order(dt)
+                    df = can_use("poltergeist")
+                    if df: 
+                        return self.create_order(df)
                     dt = safe_dt()
                     if dt: return self.create_order(dt)
                 if "eternatus" in me_name:
                     dt = safe_dt()
                     if dt: return self.create_order(dt)
-                mv = try_switch(("giratina",), base_th=0.10)
+                if "dondozo" in me_name:
+                    boosts = getattr(me, "boosts", {}) or {}
+                    atk_boost = boosts.get("atk", 0)
+                    if atk_boost > 2:
+                        liq = can_use("liquidation")
+                        if liq: return self.create_order(liq)
+                mv = try_switch(("giratinaorigin",), base_th=0.10)
                 if mv: return mv
 
             elif tag == "kingambit":
-                if "giratina" in me_name:
+                if "giratinaorigin" in me_name:
                     w = can_use("willowisp")
-                    if w and opp and opp.status is None and (not opp.types or "Fire" not in opp.types):
-                        return self.create_order(w)
+                    # if w and opp and opp.status is None and (not opp.types or "Fire" not in opp.types):
+                    #     return self.create_order(w)
                     dt = safe_dt()
-                    if dt: return self.create_order(dt)
+                    if dt:
+                        return self.create_order(dt)
                 if "dondozo" in me_name:
-                    if opp_has_move("suckerpunch"):
-                        cr = can_use("curse")
-                        if cr and self._hp(me) > 0.50 and getattr(me, "status", None) != "SLP":
-                            return self.create_order(cr)
+                    cr = can_use("curse")
+                    boosts = getattr(me, "boosts", {}) or {}
+                    atk_boost = boosts.get("atk", 0)
+                    if cr and self._hp(me) > 0.50 and getattr(me, "status", None) != "SLP" and atk_boost < 4:
+                        return self.create_order(cr)
                     r = can_use("rest")
-                    if r and getattr(me, "status", None) != "SLP" and self._hp(me) <= 0.72:
+                    if r and getattr(me, "status", None) != "SLP" and self._hp(me) <= 0.60:
                         return self.create_order(r)
                     liq = can_use("liquidation")
                     if liq: return self.create_order(liq)
@@ -516,12 +523,17 @@ class CustomAgent(Player):
                         mv = try_switch(("dondozo", "arceusfairy"), base_th=0.08)
                         if mv: return mv
                 if "dondozo" in me_name:
+                    cr = can_use("curse")
+                    boosts = getattr(me, "boosts", {}) or {}
+                    atk_boost = boosts.get("atk", 0)
+                    if cr and self._hp(me) > 0.50 and getattr(me, "status", None) != "SLP" and atk_boost < 3:
+                        return self.create_order(cr)
                     r = can_use("rest")
-                    if r and getattr(me, "status", None) != "SLP" and self._hp(me) <= 0.70:
+                    if r and getattr(me, "status", None) != "SLP" and self._hp(me) <= 0.50:
                         return self.create_order(r)
                     liq = can_use("liquidation")
                     if liq: return self.create_order(liq)
-                if "giratina" in me_name:
+                if "giratinaorigin" in me_name:
                     dt = safe_dt()
                     if dt: return self.create_order(dt)
 
@@ -535,7 +547,7 @@ class CustomAgent(Player):
                     if eq: return self.create_order(eq)
                     rec = can_use("recover")
                     if rec and self._hp(me) <= 0.55: return self.create_order(rec)
-                if "giratina" in me_name:
+                if "giratinaorigin" in me_name:
                     mv = try_switch(("hooh", "clodsire"), base_th=0.10)
                     if mv: return mv
                 if "hooh" in me_name:
@@ -551,13 +563,20 @@ class CustomAgent(Player):
                     if opp_boosted:
                         hz = can_use("haze")
                         if hz: return self.create_order(hz)
+                    rec = can_use("recover")
+                    if rec and self._hp(me) <= 0.70: 
+                        return self.create_order(rec)
                     eq = can_use("earthquake")
                     if eq: return self.create_order(eq)
-                    rec = can_use("recover")
-                    if rec and self._hp(me) <= 0.58: return self.create_order(rec)
-                if "giratina" in me_name or "eternatus" in me_name:
+                if "giratinaorigin" in me_name or "eternatus" in me_name:
                     dt = safe_dt()
                     if dt: return self.create_order(dt)
+                if "dondozo" in me_name:
+                    boosts = getattr(me, "boosts", {}) or {}
+                    atk_boost = boosts.get("atk", 0)
+                    if atk_boost > 2:
+                        liq = can_use("liquidation")
+                        if liq: return self.create_order(liq)
 
             elif tag == "koraidon":
                 fc_seen = opp_has_move("flamecharge")
@@ -571,8 +590,13 @@ class CustomAgent(Player):
                     sf = can_use("sacredfire")
                     if sf: return self.create_order(sf)
                 if "dondozo" in me_name:
+                    boosts = getattr(me, "boosts", {}) or {}
+                    atk_boost = boosts.get("atk", 0)
+                    if atk_boost > 2:
+                        liq = can_use("liquidation")
+                        if liq: return self.create_order(liq)
                     r = can_use("rest")
-                    if r and getattr(me, "status", None) != "SLP" and self._hp(me) <= 0.70:
+                    if r and getattr(me, "status", None) != "SLP" and self._hp(me) <= 0.60:
                         return self.create_order(r)
                 if "arceusfairy" not in me_name:
                     mv = try_switch(("arceusfairy",), base_th=0.08 if fc_seen else 0.12)
@@ -606,7 +630,7 @@ class CustomAgent(Player):
                     if r and self._hp(me) <= 0.72: return self.create_order(r)
                     liq = can_use("liquidation")
                     if liq: return self.create_order(liq)
-                if "giratina" in me_name:
+                if "giratinaorigin" in me_name:
                     dt = safe_dt()
                     if dt: return self.create_order(dt)
 
@@ -616,7 +640,7 @@ class CustomAgent(Player):
                     if r and self._hp(me) <= 0.70: return self.create_order(r)
                     liq = can_use("liquidation")
                     if liq: return self.create_order(liq)
-                if "giratina" in me_name:
+                if "giratinaorigin" in me_name:
                     w = can_use("willowisp")
                     if w: return self.create_order(w)
                     dt = safe_dt()
@@ -654,7 +678,7 @@ class CustomAgent(Player):
                     if sf: return self.create_order(sf)
                     ww = can_use("whirlwind")
                     if ww and opp_boosted: return self.create_order(ww)
-                if "giratina" in me_name:
+                if "giratinaorigin" in me_name:
                     w = can_use("willowisp")
                     if w: return self.create_order(w)
                     dt = safe_dt()
@@ -711,7 +735,7 @@ class CustomAgent(Player):
                 if "hooh" in me_name:
                     sf = can_use("sacredfire")
                     if sf: return self.create_order(sf)
-                if "giratina" in me_name:
+                if "giratinaorigin" in me_name:
                     w = can_use("willowisp")
                     if w: return self.create_order(w)
                     dt = safe_dt()
@@ -764,14 +788,14 @@ class CustomAgent(Player):
                 return self.create_order(ft)
 
         # Hazard control when on Giratina
-        if "giratina" in me_name and self._has_hazards_self(battle):
+        if "giratinaorigin" in me_name and self._has_hazards_self(battle):
             df = can_use("defog")
             if df and self._hp(me) >= 0.30:
                 return self.create_order(df)
 
         # Phaze for chip if they have hazards up and no Fairy immunity to DT
         if self._has_hazards_opp(battle) and not self._opp_has_type(battle, "Fairy"):
-            if "giratina" in me_name or "eternatus" in me_name:
+            if "giratinaorigin" in me_name or "eternatus" in me_name:
                 dt = safe_dt()
                 if dt: return self.create_order(dt)
             if "hooh" in me_name and tag != "eternatus":
