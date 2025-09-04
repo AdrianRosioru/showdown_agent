@@ -84,13 +84,12 @@ class CustomAgent(Player):
         "arceusfairy":   ("clodsire", "hooh", "giratinaorigin"),
         "groudon":       ("hooh", "dondozo", "giratinaorigin"),
         # OU6 (kept)
-        "tornadustherian": ("hooh", "eternatus", "arceusfairy"),
-        "rotomwash":       ("clodsire", "eternatus", "arceusfairy"),
-        "metagross":       ("dondozo", "hooh", "giratinaorigin"),
-        "cobalion":        ("hooh", "giratinaorigin", "dondozo"),
-        "zarudedada":      ("hooh", "dondozo", "arceusfairy"),
-        "zarude":          ("hooh", "dondozo", "arceusfairy"),
-        "clodsire":        ("arceusfairy", "hooh", "giratinaorigin"),
+        "ogerponwellspring": ("hooh", "eternatus"),
+        "garganacl": ("clodsire", "arceusfairy"),
+        "greattusk": ("giratinaorigin", "hooh"),
+        "dragonite": ("dondozo", "giratinaorigin"),
+        "moltres": ("eternatus", "dondozo"),
+        "darkrai": ("arceusfairy", "hooh"),
 
         # -------- UBERS POOL (newly added) --------
         "annihilape": ("hooh", "dondozo", "arceusfairy"),
@@ -433,13 +432,12 @@ class CustomAgent(Player):
             "arceusfairy":   ("clodsire", "hooh"),
             "eternatus":     ("clodsire", "eternatus"),
             "koraidon":      ("arceusfairy", "hooh"),
-            "tornadustherian": ("hooh", "eternatus"),
-            "rotomwash":       ("clodsire", "eternatus"),
-            "metagross":       ("hooh", "dondozo"),
-            "cobalion":        ("hooh", "giratinaorigin"),
-            "zarudedada":      ("hooh", "dondozo"),
-            "zarude":          ("hooh", "dondozo"),
-            "clodsire":        ("arceusfairy", "hooh"),
+            "ogerponwellspring": ("hooh", "eternatus"),
+            "garganacl": ("clodsire", "arceusfairy"),
+            "greattusk": ("giratinaorigin", "hooh"),
+            "dragonite": ("dondozo", "giratinaorigin"),
+            "moltres": ("eternatus", "dondozo"),
+            "darkrai": ("arceusfairy", "hooh"),
 
             # strongest 14 (excluding your bot's 6): add to pivot+micro
             "kyogre": ("eternatus", "arceusfairy"),
@@ -601,6 +599,82 @@ class CustomAgent(Player):
                 if "arceusfairy" not in me_name:
                     mv = try_switch(("arceusfairy",), base_th=0.08 if fc_seen else 0.12)
                     if mv: return mv
+            
+            elif tag == "ogerponwellspring":
+                if "hooh" in me_name:
+                    sf_or_bb = can_use("sacredfire") or can_use("bravebird")
+                    if sf_or_bb: return self.create_order(sf_or_bb)
+                    rec = can_use("recover")
+                    if rec and self._hp(me) <= 0.55:
+                        return self.create_order(rec)
+                if "eternatus" in me_name:
+                    ft = can_use("flamethrower")
+                    if ft: return self.create_order(ft)
+                mv = try_switch(("hooh", "eternatus"), base_th=0.10)
+                if mv: return mv
+
+            elif tag == "garganacl":
+                if "clodsire" in me_name:
+                    eq = can_use("earthquake")
+                    if eq: return self.create_order(eq)
+                    rec = can_use("recover")
+                    if rec and self._hp(me) <= 0.55: return self.create_order(rec)
+                if "arceusfairy" in me_name:
+                    jd = can_use("judgment")
+                    if jd: return self.create_order(jd)
+                mv = try_switch(("clodsire", "arceusfairy"), base_th=0.10)
+                if mv: return mv
+
+            elif tag == "greattusk":
+                if "giratina" in me_name:
+                    w = can_use("willowisp")
+                    if w and opp and opp.status is None: return self.create_order(w)
+                    dt = safe_dt()
+                    if dt: return self.create_order(dt)
+                if "hooh" in me_name:
+                    sf = can_use("sacredfire")
+                    if sf: return self.create_order(sf)
+                mv = try_switch(("giratina", "hooh"), base_th=0.12)
+                if mv: return mv
+
+            elif tag == "dragonite":
+                if "dondozo" in me_name:
+                    r = can_use("rest")
+                    if r and getattr(me, "status", None) != "SLP" and self._hp(me) <= 0.65:
+                        return self.create_order(r)
+                    liq = can_use("liquidation")
+                    if liq: return self.create_order(liq)
+                if "giratina" in me_name:
+                    dt = safe_dt()
+                    if dt: return self.create_order(dt)
+                mv = try_switch(("dondozo", "giratina"), base_th=0.08)
+                if mv: return mv
+
+            elif tag == "moltres":
+                if "eternatus" in me_name:
+                    dt = safe_dt()
+                    if dt: return self.create_order(dt)
+                    ft = can_use("flamethrower")
+                    if ft: return self.create_order(ft)
+                if "dondozo" in me_name:
+                    r = can_use("rest")
+                    if r and getattr(me, "status", None) != "SLP" and self._hp(me) <= 0.65:
+                        return self.create_order(r)
+                mv = try_switch(("eternatus", "dondozo"), base_th=0.10)
+                if mv: return mv
+
+            elif tag == "darkrai":
+                if "arceusfairy" in me_name:
+                    jd = can_use("judgment")
+                    if jd: return self.create_order(jd)
+                    rec = can_use("recover")
+                    if rec and self._hp(me) <= 0.60:
+                        return self.create_order(rec)
+                if "hooh" in me_name:
+                    bb = can_use("bravebird")
+                    if bb: return self.create_order(bb)
+                mv = try_switch(("arceusfairy", "hooh"), base_th=0.12)
+                if mv: return mv
 
             # ======= new top-14 micro =======
             elif tag == "kyogre":
