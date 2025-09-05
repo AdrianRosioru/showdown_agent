@@ -3,221 +3,116 @@ import asyncio
 import importlib
 import os
 import sys
-from typing import List
+from typing import List, Dict
 
 import poke_env as pke
 from poke_env import AccountConfiguration
 from poke_env.player.player import Player
 from tabulate import tabulate
 
-
-def rank_players_by_victories(results_dict, top_k=10):
-    victory_scores = {}
-
-    for player, opponents in results_dict.items():
-        victories = [
-            1 if (score is not None and score > 0.5) else 0
-            for opp, score in opponents.items()
-            if opp != player
-        ]
-        if victories:
-            victory_scores[player] = sum(victories) / len(victories)
-        else:
-            victory_scores[player] = 0.0
-
-    # Sort by descending victory rate
-    sorted_players = sorted(victory_scores.items(), key=lambda x: x[1], reverse=True)
-
-    return sorted_players[:top_k]
+# ---------------------------
+# Config: battles per pairing
+# ---------------------------
+TOTAL_BATTLES_PER_PAIR = 100  # total across both directions (≈50 each way)
+# pke.cross_evaluate runs "n_challenges" per *ordered* pair (A->B and B->A),
+# so use half to get ~100 total per unordered pair:
+N_CHALLENGES_PER_DIRECTION = max(1, TOTAL_BATTLES_PER_PAIR // 2)
 
 
-def gather_players():
+def gather_players() -> List[Player]:
     player_folders = os.path.join(os.path.dirname(__file__), "players")
-
-    players = []
+    players: List[Player] = []
 
     replay_dir = os.path.join(os.path.dirname(__file__), "replays")
-    if not os.path.exists(replay_dir):
-        os.makedirs(replay_dir)
+    os.makedirs(replay_dir, exist_ok=True)
 
     for module_name in os.listdir(player_folders):
-        if module_name.endswith(".py"):
-            module_path = f"{player_folders}/{module_name}"
+        if not module_name.endswith(".py"):
+            continue
 
-            spec = importlib.util.spec_from_file_location(module_name, module_path)
-            module = importlib.util.module_from_spec(spec)
+        module_path = f"{player_folders}/{module_name}"
+        spec = importlib.util.spec_from_file_location(module_name, module_path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
 
-            sys.modules[module_name] = module
-            spec.loader.exec_module(module)
+        if hasattr(module, "CustomAgent"):
+            player_name = module_name[:-3]
+            agent_class = getattr(module, "CustomAgent")
 
-            # Get the class
-            if hasattr(module, "CustomAgent"):
-                # Check if the class is a subclass of Player
+            agent_replay_dir = os.path.join(replay_dir, player_name)
+            os.makedirs(agent_replay_dir, exist_ok=True)
 
-                player_name = f"{module_name[:-3]}"
+            account_config = AccountConfiguration(player_name, None)
+            player = agent_class(
+                account_configuration=account_config,
+                battle_format="gen9ubers",
+            )
+            # save replays under per-player dir (poke-env uses this flag)
+            player._save_replays = agent_replay_dir
 
-                agent_class = getattr(module, "CustomAgent")
-
-                agent_replay_dir = os.path.join(replay_dir, f"{player_name}")
-                if not os.path.exists(agent_replay_dir):
-                    os.makedirs(agent_replay_dir)
-
-                account_config = AccountConfiguration(player_name, None)
-                player = agent_class(
-                    account_configuration=account_config,
-                    battle_format="gen9ubers",
-                )
-
-                player._save_replays = agent_replay_dir
-
-                players.append(player)
+            players.append(player)
 
     return players
 
 
-def gather_bots():
-    bot_folders = os.path.join(os.path.dirname(__file__), "bots")
-    bot_teams_folders = os.path.join(bot_folders, "teams")
-
-    generic_bots = []
-
-    bot_teams = {}
-
-    for team_file in os.listdir(bot_teams_folders):
-        if team_file.endswith(".txt"):
-            with open(
-                os.path.join(bot_teams_folders, team_file), "r", encoding="utf-8"
-            ) as file:
-                bot_teams[team_file[:-4]] = file.read()
-
-    for module_name in os.listdir(bot_folders):
-        if module_name.endswith(".py"):
-            module_path = f"{bot_folders}/{module_name}"
-
-            spec = importlib.util.spec_from_file_location(module_name, module_path)
-            module = importlib.util.module_from_spec(spec)
-
-            sys.modules[module_name] = module
-            spec.loader.exec_module(module)
-
-            for team_name, team in bot_teams.items():
-                # Get the class
-                if hasattr(module, "CustomAgent"):
-                    # Check if the class is a subclass of Player
-                    agent_class = getattr(module, "CustomAgent")
-
-                    config_name = f"{module_name[:-3]}-{team_name}"
-                    account_config = AccountConfiguration(config_name, None)
-                    generic_bots.append(
-                        agent_class(
-                            team=team,
-                            account_configuration=account_config,
-                            battle_format="gen9ubers",
-                        )
-                    )
-
-    return generic_bots
-
-
 async def cross_evaluate(agents: List[Player]):
-    return await pke.cross_evaluate(agents, n_challenges=3)
+    # Run N_CHALLENGES_PER_DIRECTION per ordered pair (A->B and B->A)
+    return await pke.cross_evaluate(agents, n_challenges=N_CHALLENGES_PER_DIRECTION)
 
 
-def evalute_againts_bots(players: List[Player]):
-    print(f"{len(players)} are competing in this challenge")
+def compute_winrates(results: Dict[str, Dict[str, float]]) -> Dict[str, float]:
+    """
+    results[p1][p2] = winrate of p1 vs p2 for the p1->p2 challenges (size = N_CHALLENGES_PER_DIRECTION).
+    We combine both directions to get ~TOTAL_BATTLES_PER_PAIR per unordered pair.
+    """
+    players = list(results.keys())
+    wins = {p: 0.0 for p in players}
+    games = {p: 0 for p in players}
+    n = N_CHALLENGES_PER_DIRECTION
 
-    print("Running Cross Evaluations...")
-    cross_evaluation_results = asyncio.run(cross_evaluate(players))
-    print("Evaluations Complete")
+    for i, a in enumerate(players):
+        for j, b in enumerate(players):
+            if j <= i:
+                continue
+            s_ab = results.get(a, {}).get(b, 0.0) or 0.0  # A's winrate vs B (A->B)
+            s_ba = results.get(b, {}).get(a, 0.0) or 0.0  # B's winrate vs A (B->A)
+            # Total wins per player over 2n games in this pair
+            wins[a] += s_ab * n + (1.0 - s_ba) * n
+            wins[b] += s_ba * n + (1.0 - s_ab) * n
+            games[a] += 2 * n
+            games[b] += 2 * n
 
-    table = [["-"] + [p.username for p in players]]
-    for p_1, results in cross_evaluation_results.items():
-        table.append([p_1] + [cross_evaluation_results[p_1][p_2] for p_2 in results])
-
-    # first row is headers
-    headers = table[0]
-    data = table[1:]
-
-    print(tabulate(data, headers=headers, floatfmt=".2f"))
-
-    print("Rankings")
-    top_players = rank_players_by_victories(
-        cross_evaluation_results, top_k=len(cross_evaluation_results)
-    )
-
-    return top_players
+    # Avoid div-by-zero for edge cases (e.g., only 1 player)
+    return {p: (wins[p] / games[p] if games[p] > 0 else 0.0) for p in players}
 
 
-def assign_marks(rank: int) -> float:
-    modifier = 1.0 if rank > 10 else 0.5
-
-    top_marks = 10.0 if rank < 10 else 5.0
-
-    mod_rank = rank % 10
-
-    marks = top_marks - (mod_rank - 1) * modifier
-
-    return 0.0 if marks < 0 else marks
+def print_winrate_table(winrates: Dict[str, float]):
+    rows = sorted(((p, wr) for p, wr in winrates.items()), key=lambda x: x[1], reverse=True)
+    print("\nFinal win rates ({} battles per pairing):".format(TOTAL_BATTLES_PER_PAIR))
+    print(tabulate([(p, f"{wr:.2%}") for p, wr in rows], headers=["Player", "Win rate"]))
 
 
 def main():
-    generic_bots = gather_bots()
-
     players = gather_players()
+    if len(players) < 2:
+        print("Need at least 2 players in ./players to battle.")
+        return
 
-    results_file = os.path.join(
-        os.path.dirname(__file__), "results", "marking_results.txt"
-    )
-    if not os.path.exists(os.path.dirname(results_file)):
-        os.makedirs(os.path.dirname(results_file))
+    print(f"Loaded {len(players)} players. Running cross-evaluation...")
+    results = asyncio.run(cross_evaluate(players))
 
-    with open(results_file, "w", encoding="utf-8") as file:
-        pass  # This opens the file in write mode, clearing it
-    '''
-    for player in players:
-        agents = []
-        print(f"Evaluating player: {player.username}")
-        agents.append(player)
-        agents.extend(generic_bots)
+    # Optional: dump raw matrix
+    header = ["-"] + [p for p in results.keys()]
+    matrix = []
+    for p1, row in results.items():
+        matrix.append([p1] + [row.get(p2, None) if p2 in row else None for p2 in results.keys()])
+    print("\nPer-direction winrates (initiator rows vs columns; each ≈ {} games):".format(N_CHALLENGES_PER_DIRECTION))
+    print(tabulate(matrix, headers=header, floatfmt=".2f"))
 
-        agent_rankings = evalute_againts_bots(agents)
+    winrates = compute_winrates(results)
+    print_winrate_table(winrates)
 
-        player_rank = len(agents) + 1
-        player_mark = 0.0
-        print("Rank. Player - Win Rate - Mark")
-        for rank, (agent, winrate) in enumerate(agent_rankings, 1):
-            mark = assign_marks(rank)
 
-            print(f"{rank}. {agent} - {winrate:.2f} - {mark}")
-            if agent == player.username:
-                player_rank = rank
-                player_mark = mark
-
-        print(f"{player.username} ranked #{player_rank} with a mark of {player_mark}\n")
-
-        with open(results_file, "a", encoding="utf-8") as file:
-            file.write(f"{player.username} #{player_rank} {player_mark}\n")
-    '''
-    agents = []
-    print('Evaluating Players...')
-    for player in players:
-        agents.append(player)
-    agents.extend(generic_bots)
-    agent_rankings = evalute_againts_bots(agents)
-    player_rank = len(agents) + 1
-    player_mark = 0.0
-    print("Rank. Player - Win Rate - Mark")
-    for rank, (agent, winrate) in enumerate(agent_rankings, 1):
-        mark = assign_marks(rank)
-
-        print(f"{rank}. {agent} - {winrate:.2f} - {mark}")
-        if agent == player.username:
-            player_rank = rank
-            player_mark = mark
-
-    print(f"{player.username} ranked #{player_rank} with a mark of {player_mark}\n")
-
-    with open(results_file, "a", encoding="utf-8") as file:
-        file.write(f"{player.username} #{player_rank} {player_mark}\n")
 if __name__ == "__main__":
     main()

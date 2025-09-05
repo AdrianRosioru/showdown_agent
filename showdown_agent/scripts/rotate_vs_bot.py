@@ -90,7 +90,7 @@ async def run_all(player_file: str, bot_name: str, runs: int, battle_format: str
     bot_mod  = load_module(os.path.join(bots_dir, bot_file_map[bot_name]))
 
     # Always use bots/teams/uber.txt
-    bot_team_raw = read_text(os.path.join(teams_dir, "uu.txt"))
+    bot_team_raw = read_text(os.path.join(teams_dir, "uber.txt"))
 
     print("\n=== Rotate-vs-Bot ===")
     print(f"Player file : {os.path.join('players', os.path.basename(player_file))}")
@@ -104,8 +104,8 @@ async def run_all(player_file: str, bot_name: str, runs: int, battle_format: str
     total_games = 0
 
     for pos in range(6):
-        if pos != 4:
-            continue
+        # if pos != 4:
+        #     continue
         order = team_order_for_lead(pos)
         print(f"→ Lead position {pos} (sending /team {order})")
 
