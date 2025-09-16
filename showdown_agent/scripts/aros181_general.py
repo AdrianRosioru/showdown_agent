@@ -71,7 +71,7 @@ Calm Nature
 # =========================
 # Minimal knobs
 # =========================
-HEAL_THRESHOLD = 0.40     # heal at/below this if healing keeps you alive
+HEAL_THRESHOLD = 0.65     # heal at/below this if healing keeps you alive
 DIE_SWITCH_PAD = 0.00     # switch if worst-in >= hp + pad and you can't heal out
 COUNTER_MARGIN  = 0.15    # proactive type-counter switch if it reduces incoming by >= this
 ENTRY_SAFETY_PAD = 1e-6   # tiny pad for hazard-KO checks
